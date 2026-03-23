@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+   url = env("DATABASE_URL")
+  
+}
+
+
+model RobotData {
+  id                     Int      @id @default(autoincrement())
+  deviceId               String
+  deviceName             String
+  block                  String?
+
+  panelsCleaned          Int
+  rawOdometerValue       BigInt
+  batteryDischargeCycle  Float
+
+  manualCount            Int      @default(0)
+  autoCount              Int      @default(0)
+
+  applicationId          String
+  tenantId               String
+
+  createdAt              DateTime @default(now())
+  
+
+  @@index([createdAt, deviceId])
+  @@index([applicationId])
+  @@index([tenantId])
+}
+
+
+model User{
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  name String // site name with description
+  role Role @default(USER)
+  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [id])
+  applicationId Int?
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model ChirpstackApplication {
+  id             Int     @id @default(autoincrement())
+  chirpstackId   String  @unique   // ChirpStack application ID
+  name           String
+  description    String?
+
+  tenantId       Int
+  tenant         ChirpstackTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  users          User[]
+  siteConfiguration SiteConfiguration?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+model ChirpstackTenant {
+  id            Int     @id @default(autoincrement())
+  chirpstackId  String  @unique   // ChirpStack tenant ID
+  name          String
+  description   String?
+  isActive      Boolean @default(true)
+  lastSyncedAt  DateTime?
+
+  applications  ChirpstackApplication[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SiteConfiguration {
+  id                   Int @id @default(autoincrement())
+  panelWidth            Float @default(1.0)
+  panelsGap             Float @default(0.0)
+  multiplicationFactor  Int @default(1)
+  triggeringAction      blocktriggering @default(UNICAST)
+  sendTwiceAday         Boolean @default(false)
+
+  applicationId         Int @unique
+  application           ChirpstackApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+
+model  activeDeviceCount {
+  id Int @id @default(autoincrement())
+  applicationId String
+  tenantId Int
+  activeCount Int
+  inactiveCount Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([applicationId])
+}
+
+
+enum Role{
+  ADMIN
+  USER
+}
+
+enum blocktriggering{
+  UNICAST
+  MULTICAST
+  BOTH
+}
+
+
+

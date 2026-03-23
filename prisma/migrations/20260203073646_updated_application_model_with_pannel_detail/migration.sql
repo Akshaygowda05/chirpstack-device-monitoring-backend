@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "ChirpstackApplication" ADD COLUMN     "multiplicationFactor" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "pannelWidth" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+ADD COLUMN     "pannlesGaps" DOUBLE PRECISION NOT NULL DEFAULT 0.0;
