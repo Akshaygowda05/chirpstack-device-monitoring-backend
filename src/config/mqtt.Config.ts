@@ -2,6 +2,7 @@ import mqtt , { MqttClient } from 'mqtt';
 import dotenv from 'dotenv';
 import loggers from './logger';
 import { queueClient } from './redisConfig';
+import envconfig from './envConfig';
 
 dotenv.config();
 
@@ -11,9 +12,8 @@ export class MQTTconfig{
     private readonly brokerURL:string;
     private readonly topic:string;
 
-
     constructor(){
-        this.brokerURL = process.env.MQTT_URL  as string;
+        this.brokerURL = envconfig.getMqttUrl() as string;
         this.topic = `application/+/device/+/event/up`;
 
         this.client  = mqtt.connect(this.brokerURL,{
@@ -31,14 +31,17 @@ export class MQTTconfig{
 
 
     private registerEvents(){
-        this.client.on('connect',() => loggers.info('✅ Connected to MQTT broker'));
-        this.client.subscribe(this.topic,(err)=>{
-            if(err){
-                loggers.error('❌ MQTT Subscription error:',err.message);
-            }else{
-                loggers.info(`✅ Subscribed to topic: ${this.topic}`);
-            }
-        })
+        this.client.on('connect',() => {
+            
+            loggers.info('✅ Connected to MQTT broker')
+            this.client.subscribe(this.topic,(err)=>{
+                if(err){
+                    loggers.error('❌ MQTT Subscription error:',err.message);
+                } else {                    loggers.info(`📡 Subscribed to MQTT topic: ${this.topic}`);
+                }
+            })
+        });
+       
         this.client.on('message',(topic,message) => this.onMessage(topic,message));
         this.client.on('error',(error) => loggers.error('❌ MQTT Error:',error.message));
         this.client.on('reconnect',() => loggers.info('🔄 Reconnecting to MQTT broker...'));

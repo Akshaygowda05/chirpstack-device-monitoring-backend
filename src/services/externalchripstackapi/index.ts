@@ -8,7 +8,6 @@ const chripstackRouter = express.Router();
 require('dotenv').config();
 
 
-const CHIRPSTACK_API_URL = process.env.API_URL as string;
 
 // this is to get devices by group id 
 chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res: Response) => {
@@ -148,27 +147,27 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 
 
 })
-// i dont think so it is required or not but let it be
-chripstackRouter.get("/server", async(req, res) => {
-    try {
-        const response = await apiClient.get(CHIRPSTACK_API_URL);
-        if (response.status === 200) {
-            return res.status(200).json({
-                time: Date.now().toString(),
-            });
-        }
-        return res.status(500).json({
-            message: "Notworking"
-        });
+// // i dont think so it is required or not but let it be
+// chripstackRouter.get("internal/server", async(req, res) => {
+//     try {
+//         const response = await axios.get(envconfig.getChirpstackUrl());
+//         if (response.status === 200) {
+//             return res.status(200).json({
+//                 time: Date.now().toString(),
+//             });
+//         }
+//         return res.status(500).json({
+//             message: "Notworking"
+//         });
         
-    } catch (err) {
-        const error: any = err;
-        loggers.error('Server check error:', error.message);
-        return res.status(500).json({
-            error: error.message
-        });
-    }
-});
+//     } catch (err) {
+//         const error: any = err;
+//         loggers.error('Server check error:', error.message);
+//         return res.status(500).json({
+//             error: error.message
+//         });
+//     }
+// });
 
 // if i fetch groups by user ,then i can send data to particualr group and all the devices in that group will get the data, so here we are sending data to group and then group will send to all the devices in that group
 chripstackRouter.post('/multicast-groups/:groupId/queue', async (req:Request, res:Response) => {
