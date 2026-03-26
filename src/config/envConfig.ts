@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 class envconfig {
     private static CHRIPSTACK_URL: string;
     private static CHRIPSTACK_KEY: string;

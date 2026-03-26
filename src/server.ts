@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import { MQTTconfig } from "./config/mqtt.Config";
 import  "./services/queue.worker";
 
+const port = 3000;
 
 export const app = express();
 export const server = http.createServer(app);
@@ -15,7 +16,12 @@ export const server = http.createServer(app);
 })
 
 app.use(express.json());
+
+
+
 new MQTTconfig()
 
 
-
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});

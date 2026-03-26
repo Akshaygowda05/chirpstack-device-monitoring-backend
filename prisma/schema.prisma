@@ -25,6 +25,7 @@ model RobotData {
   panelsCleaned          Int
   rawOdometerValue       BigInt
   batteryDischargeCycle  Float
+  batteryVoltage         Float
 
   manualCount            Int      @default(0)
   autoCount              Int      @default(0)

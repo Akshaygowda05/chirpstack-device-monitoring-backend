@@ -1,7 +1,16 @@
-import { server } from "./server";
+import http from 'http';
+import { Server } from "socket.io";
+import { app } from './server';
 
-const port = 3000;
 
-server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+
+
+export const server = http.createServer(app);
+ export const io = new Server(server,{
+    cors:{
+        origin:"*",
+        methods:["GET","POST"]
+    }
+})
+
+

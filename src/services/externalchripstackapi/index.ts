@@ -4,7 +4,7 @@ import apiClient from '../../config/apiclient';
 import authenticate from '../../middlewares/auth.middlware';
 import loggers from '../../config/logger';
 import { prisma } from '../../config/primsaConfig';
-const chripstackRouter = express.Router();
+const  chripstackRouter = express.Router();
 require('dotenv').config();
 
 
