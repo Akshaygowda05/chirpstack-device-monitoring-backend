@@ -14,7 +14,7 @@ export class MQTTconfig{
 
     constructor(){
         this.brokerURL = envconfig.getMqttUrl() as string;
-        this.topic = `+/+/device/+/event/up`;
+        this.topic = `+/+/device/+/event/log`;
 
         this.client  = mqtt.connect(this.brokerURL,{
             clientId: `mqttjs_${Math.random().toString(16).slice(2, 10)}`,
@@ -57,7 +57,7 @@ export class MQTTconfig{
                 removeOnComplete:true,
                 removeOnFail:true
             });
-            loggers.info(`📩 MQTT Message received on topic ${topic}`);
+         // loggers.info(`📩 MQTT Message received on topic ${topic}`);
         }
         catch(error){
             loggers.error('❌ Error processing MQTT message:',JSON.stringify(error));
