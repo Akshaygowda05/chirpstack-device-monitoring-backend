@@ -16,6 +16,14 @@ const  worker = new Worker("dataQueue",async (job) =>{  // here we can give any 
         return;
      }
 
+     try{
+         // here first i need to save the data 
+            loggers.info(`Processing MQTT message on topic ${topic} with payload: ${payload}`);
+     }catch(error){
+            loggers.error('Error processing MQTT message:', error);
+
+     }
+
      
     }
 

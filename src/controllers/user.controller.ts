@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { userService } from "../services/user.service";
 
 export class UserController {
-    static async createUser(req: Request, res: Response) {
+    static async createUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userData = req.body;
             if (!userData) {
@@ -12,36 +12,33 @@ export class UserController {
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
         } catch (error) {
-            console.error('Error creating user:', error);
-            res.status(500).json({ error: 'Failed to create user' });
+            next(error);// this will pass the error to the global error handler
         }
     }
 
-    static async deleteUser(req: Request, res: Response) {
+    static async deleteUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = parseInt(req.params.id as string, 10);
             await userService.deletUser(userId);
             res.status(200).json({ message: 'User deleted successfully' });
         } catch (error) {
-            console.error('Error deleting user:', error);
-            res.status(500).json({ error: 'Failed to delete user' });
+            next(error);// this will pass the error to the global error handler
         }
     }
 
-    static async updateUser(req: Request, res: Response) {
+    static async updateUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = parseInt(req.params.id as string, 10);
             const updateData = req.body;
             const updatedUser = await userService.updateUser(userId, updateData);
             res.status(200).json(updatedUser);
         } catch (error) {
-            console.error('Error updating user:', error);
-            res.status(500).json({ error: 'Failed to update user' });
+            next(error);// this will pass the error to the global error handler
         }
 
     }
 
-    static async userlogin(req: Request, res: Response) {
+    static async userlogin(req: Request, res: Response,next: NextFunction) {
         try {
             const { email, password } = req.body;
             const loginResult = await userService.userLogin(email, password);
@@ -51,32 +48,29 @@ export class UserController {
                 res.status(401).json({ error: 'Invalid credentials' });
             }
         } catch (error) {
-            console.error('Error during user login:', error);
-            res.status(500).json({ error: 'Login failed' });
+            next(error);// this will pass the error to the global error handler
         }
 
     }
 
-    static async updateUserPassword(req: Request, res: Response) {
+    static async updateUserPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = parseInt(req.params.id as string, 10);
             const { newPassword } = req.body;
             await userService.updateuserPassword(userId, newPassword);
             res.status(200).json({ message: 'Password updated successfully' });
         } catch (error) {
-            console.error('Error updating password:', error);
-            res.status(500).json({ error: 'Failed to update password' });
+      next
         }
 
     }
 
-    static async getAllUsers(req: Request, res: Response) {
+    static async getAllUsers(req: Request, res: Response,next: NextFunction) {
         try {
             const users = await userService.getAllUsers();
             res.status(200).json(users);
         } catch (error) {
-            console.error('Error fetching users:', error);
-            res.status(500).json({ error: 'Failed to fetch users' });
+         next(error);// this will pass the error to the global error handler
         }
     }
 }

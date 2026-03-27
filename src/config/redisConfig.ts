@@ -2,6 +2,7 @@ import  { Redis } from"ioredis";
 import { Queue } from "bullmq";
 import loggers from "./logger";
 import { io } from "../server";
+import AppError from "../utils/AppError";
 
 export class RedisConfig{
     private static instance:Redis | null = null;
@@ -17,7 +18,9 @@ export class RedisConfig{
     }
 
     this.instance.on('connect',() => loggers.info('✅ Connected to Redis server'));
-    this.instance.on('error',(error) => loggers.error('❌ Redis connection error:',error));
+    this.instance.on('error',(error) => {loggers.error('❌ Redis connection error:',error)
+        throw new AppError('Redis Connection Error',500,false);
+    });
       
      return this.instance;
 
@@ -66,7 +69,7 @@ class RedisService {
              
         }catch(error:any){
             loggers.error('Error fetching FIFO list:', error);
-            throw new Error(error.message);
+            throw new AppError('Error fetching FIFO list',500,false);
         }
     }
 

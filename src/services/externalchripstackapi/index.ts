@@ -1,21 +1,23 @@
 
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import apiClient from '../../config/apiclient';
 import authenticate from '../../middlewares/auth.middlware';
 import loggers from '../../config/logger';
 import { prisma } from '../../config/primsaConfig';
+import AppError from '../../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
 
 
 // this is to get devices by group id 
-chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res: Response) => {
+chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res: Response,next: NextFunction) => {
     const { groupId } = req.params;
     try {
         const applicationId = req.applicationId;
         if(!applicationId){
-            return res.status(400).json({error:"Application ID missing in user token,please login again"});
+           throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
         const response = await apiClient.get('/api/devices', {
             params: {
@@ -27,21 +29,18 @@ chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res:
         res.json({ result: response.data.result }); 
     } catch (error) {
         const err: any = error;
-        console.error('Error fetching devices:', err);
-        res.status(500).json({
-            error: 'Failed to fetch devices',
-            details: err.response?.data || err.message
-        });
+        loggers.error('API Error:', err.response?.data || err.message);
+        next(err); // Pass the error to the global error handler
     }
 });
 
 
 // fetch the devices list
-chripstackRouter.get('/devices', authenticate, async (req: Request, res: Response) => {
+chripstackRouter.get('/devices', authenticate, async (req: Request, res: Response,next: NextFunction) => {
     try {
         const applicationId = req.applicationId;
         if(!applicationId){
-            return res.status(400).json({error:"Application ID missing in user token,please login again"});
+            throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
          const response = await apiClient.get('/api/devices', {
             params: {
@@ -52,17 +51,14 @@ chripstackRouter.get('/devices', authenticate, async (req: Request, res: Respons
         res.json({ result: response.data.result });
     } catch (err) {
         const error: any = err;
-        console.error('API Error:', error.response?.data || error.message);
-        res.status(500).json({ 
-            error: 'Failed to fetch devices',
-            details: error.response?.data
-        });
+        loggers.error('API Error:', error.response?.data || error.message);
+        next(error); // Pass the error to the global error handler
     }
 });
 
 
 // toggle downlink for device(for this authneticate we dont want )
-chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Response) => {
+chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Response,next: NextFunction) => {
     try {
         const { deviceId } = req.params;
         const response = await apiClient.post(
@@ -74,19 +70,16 @@ chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Resp
     } catch (err) {
         const error: any = err;
        loggers.error(`Failed to toggle downlink for device ${req.params.deviceId}: ${error.response?.data || error.message}`);
-        res.status(500).json({ 
-            error: 'Failed to toggle downlink for device',
-            details: error.response?.data
-        });
+        next(error); // Pass the error to the global error handler
     }
 });
 
 // fetch multicast groups by 
-chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:Response) => {
+chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:Response,next: NextFunction) => {
   try {
     const applicationId = req.applicationId;
     if(!applicationId){
-        return res.status(400).json({error:"Application ID missing in user token,please login again"});
+        throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
     }
     const response = await apiClient.get('/api/multicast-groups', {
       params: {
@@ -100,10 +93,7 @@ chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:R
   } catch (err) {
     const error: any = err;
     loggers.error('API Error:', error.response?.data || error.message);
-    res.status(500).json({
-      error: 'Failed to fetch multicast groups',
-      details: error.response?.data || error.message
-    });
+    next(error); // Pass the error to the global error handler
   }
 });
 
@@ -114,7 +104,7 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 
         const applicationId = req.applicationId;
         if(!applicationId){
-            return res.status(400).json({error:"Application ID missing in user token,please login again"});
+            throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
 
         const teneantId = prisma.chirpstackApplication.findFirst({
@@ -131,6 +121,10 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
             }
         });
         const gatewayData = gatewayResponse.data;
+
+        if(!gatewayData || !gatewayData.result || gatewayData.result.length === 0){
+            throw new AppError('No gateways found for the tenant',StatusCodes.NOT_FOUND);
+         }
 
         res.status(200).json({
             message:"success",
@@ -170,7 +164,7 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 // });
 
 // if i fetch groups by user ,then i can send data to particualr group and all the devices in that group will get the data, so here we are sending data to group and then group will send to all the devices in that group
-chripstackRouter.post('/multicast-groups/:groupId/queue', async (req:Request, res:Response) => {
+chripstackRouter.post('/multicast-groups/:groupId/queue', async (req:Request, res:Response,next: NextFunction) => {
     try {
         const { groupId } = req.params;
         const { data } = req.body;
@@ -198,10 +192,7 @@ chripstackRouter.post('/multicast-groups/:groupId/queue', async (req:Request, re
 
     } catch (error: any) {
         loggers.error('API Error:', error.response?.data || error.message);
-        res.status(500).json({
-            error: 'Failed to toggle downlink',
-            details: error.response?.data
-        });
+     next(error); // Pass the error to the global error handler
     }
 });
 

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import loggers from './logger';
 import { queueClient } from './redisConfig';
 import envconfig from './envConfig';
+import AppError from '../utils/AppError';
 
 
 
@@ -44,7 +45,11 @@ export class MQTTconfig{
         });
        
         this.client.on('message',(topic,message) => this.onMessage(topic,message));
-        this.client.on('error',(error) => loggers.error('❌ MQTT Error:',error.message));
+        this.client.on('error',(error) => {
+            loggers.error('❌ MQTT Error:',error.message)
+            throw new AppError('MQTT Connection Error',500,false);
+        
+        });
         this.client.on('reconnect',() => loggers.info('🔄 Reconnecting to MQTT broker...'));
         this.client.on('close',() => loggers.warn('⚠️ Disconnected from MQTT broker'));
     }
