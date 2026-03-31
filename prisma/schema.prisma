@@ -35,7 +35,7 @@ model RobotData {
 
   createdAt              DateTime @default(now())
   
-
+  @@index([deviceId])
   @@index([createdAt, deviceId])
   @@index([applicationId])
   @@index([tenantId])

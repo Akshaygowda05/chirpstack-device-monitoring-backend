@@ -17,8 +17,10 @@ const  worker = new Worker("dataQueue",async (job) =>{  // here we can give any 
      }
 
      try{
-         // here first i need to save the data 
             loggers.info(`Processing MQTT message on topic ${topic} with payload: ${payload}`);
+
+            
+
      }catch(error){
             loggers.error('Error processing MQTT message:', error);
 
@@ -27,25 +29,17 @@ const  worker = new Worker("dataQueue",async (job) =>{  // here we can give any 
      
     }
 
-    
-
-
-
-
-
-    
-    
-},{
+,{
     connection:redisClient,
     concurrency:10
 })
 
 worker.on('completed',(job) => {
-    //loggers.info(`Job with id ${job.id} has been completed`);
+    loggers.info(`Job with id ${job.id} has been completed`);
 })
 
 worker.on('failed',(job,err) => {
-   // loggers.error(`Job with id ${job?.id} has failed with error ${err.message}`);
+    loggers.error(`Job with id ${job?.id} has failed with error ${err.message}`);
 })
 
 export default worker;
