@@ -1,8 +1,10 @@
-import express from "express";
+import express,{Request,Response,NextFunction} from "express";
+ 
 import http from 'http';
 import { Server } from "socket.io";
 import { MQTTconfig } from "./config/mqtt.Config";
 import  "./services/queue.worker";
+import { globalErrorHandler } from "./utils/globalErrorHandler";
 
 const port = 3000;
 
@@ -21,10 +23,7 @@ app.use(express.json());
 
 new MQTTconfig()
 
-server.use((req,res,next)=>{
-    
-})
-
+app.use(globalErrorHandler); // Register the global error handler
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);

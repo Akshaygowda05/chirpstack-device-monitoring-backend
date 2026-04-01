@@ -1,5 +1,4 @@
 import ValidateOdometerValue from "../rules/odomter.value";
-import apiClient from "../config/apiclient";
 import { prisma } from "../config/primsaConfig";
 import RobotRepository from "../services/robot.repository";
 import loggers from "../config/logger";
@@ -7,7 +6,10 @@ import loggers from "../config/logger";
 export async function processMqttData(topic: string, payload: any) {
     try {
         const devEui = payload?.deviceInfo?.devEui;
-        const currentOdometer = Number(payload?.object?.CH10); // ✅ consistent path
+       // console.log(" ☠️Processing MQTT data for device:", devEui);
+        const currentOdometer = Number(payload?.object?.CH10);
+      //  console.log("👾Current odometer value:", currentOdometer);
+        let block = payload?.tags?.loc  || "unknown";
 
         if (!devEui) {
             throw new Error("devEui is missing in payload");
@@ -22,7 +24,6 @@ export async function processMqttData(topic: string, payload: any) {
             orderBy: { createdAt: "desc" },
             select: {
                 rawOdometerValue: true,
-                block: true,
             },
         });
 
@@ -31,20 +32,9 @@ export async function processMqttData(topic: string, payload: any) {
                 ? Number(previousData.rawOdometerValue)
                 : undefined;
 
-        let block = previousData?.block;
+  // console.log("📊 idu ale robot battery test madana:", previousOdometerValue);
 
-        
-        if (!block) {
-            try {
-                const res = await apiClient.get(
-                    `api/devices/${devEui}/blocks?limit=1`
-                );
-                block = res.data?.device?.description || null;
-            } catch (err) {
-                loggers.error(`Failed to fetch block for ${devEui}`, err);
-                block = null;
-            }
-        }
+       
 
         const validationResult =
             ValidateOdometerValue.processOdometerValue(

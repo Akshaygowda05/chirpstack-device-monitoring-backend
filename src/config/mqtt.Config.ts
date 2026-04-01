@@ -15,7 +15,7 @@ export class MQTTconfig{
 
     constructor(){
         this.brokerURL = envconfig.getMqttUrl() as string;
-        this.topic = `+/+/device/+/event/log`;
+        this.topic = `+/+/device/+/event/up`;
 
         this.client  = mqtt.connect(this.brokerURL,{
             clientId: `mqttjs_${Math.random().toString(16).slice(2, 10)}`,

@@ -12,7 +12,8 @@ export async function calculatePannelsCleand(applicationId:string,currentOdomter
         })
 
         if(!getsiteconfig || !getsiteconfig.siteConfiguration){
-            throw new Error('Site configuration not found for applicationId: ' + applicationId);
+           // throw new Error('Site configuration not found for applicationId: ' + applicationId);
+           return 0;
         }
 
         const distance = currentOdomter ;
@@ -20,7 +21,7 @@ export async function calculatePannelsCleand(applicationId:string,currentOdomter
         const panelsCleaned = Math.floor(distance / effectiveCleaningWidth);
         const toalPannelsCleaned = panelsCleaned * getsiteconfig.siteConfiguration.multiplicationFactor ||1;
 
-        return toalPannelsCleaned;
+        return toalPannelsCleaned || 0;
         
     } catch (error:any) {
 

@@ -1,23 +1,30 @@
-export function globalErrorHandler(err:any){
+import { Request, Response, NextFunction } from "express";
 
-    let errorData ;
-    if(err instanceof Error){
- errorData = {
-    message:err.message,
-    status:(err as any).statusCode ,
-    isOperational:(err as any).isOperational || false // this is for the critical thing 
-}
-    } else{
+export function globalErrorHandler(
+    err: any, 
+    req: Request, 
+    res: Response, 
+    next: NextFunction 
+) {
+    let errorData;
+
+    if (err instanceof Error) {
         errorData = {
-            message:'An unexpected error occurred',
-            status:500,
-            isOperational:false
-        }
+            message: err.message,
+            status: (err as any).statusCode || 500,
+            isOperational: (err as any).isOperational || false
+        };
+    } else {
+        errorData = {
+            message: 'An unexpected error occurred',
+            status: 500,
+            isOperational: false
+        };
     }
 
-
-return errorData;
-
-
+   
+    res.status(errorData.status).json({
+        success: false,
+        ...errorData
+    });
 }
-

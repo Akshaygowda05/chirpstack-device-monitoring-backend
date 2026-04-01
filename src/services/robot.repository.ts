@@ -12,17 +12,21 @@ class RobotRepository {
     }
 
     static extractDeviceInfo(data: any) {
+       // console.log("i am in extract device info and this is the data i got ",data);
         const deviceInfo = data.deviceInfo || {};
 
-        const { devEui, applicationId, devicesName, tenantId } = deviceInfo;
+         const { devEui, applicationId, deviceName, tenantId } = deviceInfo;
+      
 
-        if (!devEui || !applicationId || !devicesName || !tenantId) {
+        if (!devEui || !applicationId || !deviceName || !tenantId) {
             throw new Error("Missing required device fields");
         }
 
+        //console.log("Extracted device info:", { devEui, applicationId, deviceName, tenantId });
+
         return {
             deviceId: devEui,
-            deviceName: devicesName,
+            deviceName: deviceName,
             applicationId,
             tenantId,
         };
@@ -35,6 +39,7 @@ class RobotRepository {
     ) {
         try {
             const device = this.extractDeviceInfo(data);
+          //  console.log("Device info extracted successfully:", device);
 
             const odometer = this.parseNumber(data.object?.CH10, "odometer");
             const autoCount = this.parseNumber(data.object?.CH15, "autoCount");
