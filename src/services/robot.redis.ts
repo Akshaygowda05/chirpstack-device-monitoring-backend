@@ -2,7 +2,7 @@ import { redisClient } from "../config/redisConfig";
 
 export async function storeDataInRedis(data:any){
 
-    console.log("Storing data in Redis: i am here what to ");
+   // console.log("Storing data in Redis: i am here what to ");
     try {
 
         const redisData : Record<string,string> = {};

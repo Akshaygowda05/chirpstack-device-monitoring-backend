@@ -39,7 +39,7 @@ export class MQTTconfig{
             this.client.subscribe(this.topic,(err)=>{
                 if(err){
                     loggers.error('❌ MQTT Subscription error:',err.message);
-                } else {                    loggers.info(`📡 Subscribed to MQTT topic: ${this.topic}`);
+                } else {  // loggers.info(`📡 Subscribed to MQTT topic: ${this.topic}`);
                 }
             })
         });

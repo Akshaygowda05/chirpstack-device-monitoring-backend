@@ -44,11 +44,11 @@ export async function processMqttData(topic: string, payload: any) {
 
         switch (validationResult.type) {
             case "IGNORE":
-                loggers.info(`Ignored duplicate/invalid data for ${devEui}`);
+              //  loggers.info(`Ignored duplicate/invalid data for ${devEui}`);
                 return;
 
             case "FIRST_ENTRY":
-                loggers.info(`First entry for device ${devEui}`);
+              //  loggers.info(`First entry for device ${devEui}`);
                 return await RobotRepository.createNewData(payload, block);
 
             case "RESET":

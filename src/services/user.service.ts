@@ -2,6 +2,7 @@ import bycrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Role } from '../generated/prisma/enums';
 import { prisma } from '../config/primsaConfig';
+import envconfig from '../config/envConfig';
 
 
 
@@ -114,7 +115,7 @@ export class UserService{
             userId: user.id,
             role: user.role,
             applicationId: user.applicationId
-           }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+           }, envconfig.getTokenSecret(), { expiresIn: '1h' });
 
 
            return {

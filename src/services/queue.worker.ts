@@ -19,7 +19,7 @@ const  worker = new Worker("dataQueue",async (job) =>{
         try{ 
 
           await  Promise.all([
-                loggers.info(`Processing MQTT data for topic ${topic}`),
+                // loggers.info(`Processing MQTT data for topic ${topic}`),
                 processMqttData(topic, parsedPayload),
                 storeDataInRedis(parsedPayload)
 
@@ -45,7 +45,7 @@ const  worker = new Worker("dataQueue",async (job) =>{
 })
 
 worker.on('completed',(job) => {
-    loggers.info(`Job with id ${job.id} has been completed`);
+   // loggers.info(`Job with id ${job.id} has been completed`);
 })
 
 worker.on('failed',(job,err) => {

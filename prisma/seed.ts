@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient , Role} from "../src/generated/prisma/client"; 
 const prisma = new PrismaClient();
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL!;

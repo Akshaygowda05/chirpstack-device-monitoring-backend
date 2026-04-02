@@ -7,6 +7,7 @@ class envconfig {
     private static CHRIPSTACK_KEY: string;
     private static TOKEN_SECRET: string;
     private static MQTT_URL: string;
+    
 
     static initialize() {
         envconfig.CHRIPSTACK_URL = process.env.CHRIPSTACK_URL as string;
@@ -20,6 +21,7 @@ class envconfig {
     }
 
     static getChirpstackKey(): string {
+        console.log("CHRIPSTACK_KEY:", envconfig.CHRIPSTACK_KEY); // Debug log to check the value
         return envconfig.CHRIPSTACK_KEY;
     }   
 

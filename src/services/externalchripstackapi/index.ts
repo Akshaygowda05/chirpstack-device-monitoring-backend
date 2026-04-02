@@ -9,13 +9,17 @@ import { StatusCodes } from 'http-status-codes';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
+interface CustomRequest extends Request {
+    applicationId?: string;
+}
+
 
 
 // this is to get devices by group id 
 chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res: Response,next: NextFunction) => {
     const { groupId } = req.params;
     try {
-        const applicationId = req.applicationId;
+        const applicationId = (req as CustomRequest).applicationId;
         if(!applicationId){
            throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
@@ -38,7 +42,7 @@ chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res:
 // fetch the devices list
 chripstackRouter.get('/devices', authenticate, async (req: Request, res: Response,next: NextFunction) => {
     try {
-        const applicationId = req.applicationId;
+        const applicationId = (req as CustomRequest).applicationId;
         if(!applicationId){
             throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
@@ -77,7 +81,7 @@ chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Resp
 // fetch multicast groups by 
 chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:Response,next: NextFunction) => {
   try {
-    const applicationId = req.applicationId;
+    const applicationId = (req as CustomRequest).applicationId;
     if(!applicationId){
         throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
     }
@@ -102,7 +106,7 @@ chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:R
 chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Response)=>{
     try {
 
-        const applicationId = req.applicationId;
+        const applicationId = (req as CustomRequest).applicationId;
         if(!applicationId){
             throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
