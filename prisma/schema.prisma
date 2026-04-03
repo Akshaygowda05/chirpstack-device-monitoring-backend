@@ -48,8 +48,8 @@ model User{
   password String
   name String // site name with description
   role Role @default(USER)
-  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [id])
-  applicationId Int?
+  application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
+  applicationId String?
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

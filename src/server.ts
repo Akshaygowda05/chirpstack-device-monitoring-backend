@@ -6,8 +6,7 @@ import { MQTTconfig } from "./config/mqtt.Config";
 import  "./services/queue.worker";
 import { globalErrorHandler } from "./utils/globalErrorHandler";
 import router from "./routes";
-import envconfig from "./config/envConfig";
-import { syncChirpstackData } from "./seed/applicationAndTenantId.repo";
+
 
 const port = 3000;
 
@@ -22,7 +21,7 @@ export const server = http.createServer(app);
 
 console.log("Starting server...");
 app.use(express.json());
-syncChirpstackData();
+
 
 
 
@@ -31,7 +30,7 @@ new MQTTconfig()
 
 app.use('/',router);
 
-app.use(globalErrorHandler); // Register the global error handler
+app.use(globalErrorHandler); 
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);

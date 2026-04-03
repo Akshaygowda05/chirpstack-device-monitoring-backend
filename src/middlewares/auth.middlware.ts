@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import { Role } from '../generated/prisma/enums';
+import envconfig from '../config/envConfig';
+import AppError from '../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
 
 
 
@@ -25,15 +28,15 @@ declare global {
 async function authenticate(req: Request, res: Response, next: NextFunction) {
     try {
         const token = req.headers.authorization?.split(' ')[1];
+       // console.log("Token from header:", token); // Debug log to check the token value
         if (!token) {
-            return res.status(401).json({ error: 'Authorization token missing' });
+            throw new AppError('No token provided',StatusCodes.UNAUTHORIZED);
         }
-        const decode = verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        const decode = verify(token, envconfig.getTokenSecret()!) as JwtPayload;
+      //  console.log("Decoded token payload:", decode); // Debug log to check the decoded token payload
 
         if(!decode){
-            res.status(401).json({
-                message:"session expried ,login again!"
-            })
+           throw new AppError('Invalid token',StatusCodes.UNAUTHORIZED);
         }
 
         req.userId = decode.userId;

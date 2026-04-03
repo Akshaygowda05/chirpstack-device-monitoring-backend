@@ -8,7 +8,7 @@ export async function syncChirpstackData() {
 
         const allTenants: any[] = [];
 
-        // ✅ 1. Fetch all tenants (paginated)
+    
         while (true) {
             const response = await apiClient.get(
                 `/api/tenants?limit=${limit}&offset=${offset}`
@@ -25,7 +25,7 @@ export async function syncChirpstackData() {
 
         console.log(`Fetched ${allTenants.length} tenants`);
 
-        // ✅ 2. Upsert tenants (batch)
+       
         await Promise.all(
             allTenants.map((tenant) =>
                 prisma.chirpstackTenant.upsert({
@@ -45,7 +45,7 @@ export async function syncChirpstackData() {
             )
         );
 
-        // ✅ 3. Fetch tenants from DB (to get INT ids)
+        
         const dbTenants = await prisma.chirpstackTenant.findMany({
             where: {
                 chirpstackId: {
@@ -54,12 +54,12 @@ export async function syncChirpstackData() {
             }
         });
 
-        // ✅ Map: chirpstackId → DB id
+       
         const tenantMap = new Map(
-            dbTenants.map(t => [t.chirpstackId, t.id])
+            dbTenants.map(t => [t.chirpstackId, t.id])  
         );
 
-        // ✅ 4. Fetch + upsert applications (batched per tenant)
+      
         for (const tenant of allTenants) {
             const dbTenantId = tenantMap.get(tenant.id);
 
@@ -68,6 +68,7 @@ export async function syncChirpstackData() {
             let appOffset = 0;
 
             while (true) {
+                
                 const appResponse = await apiClient.get(
                     `/api/applications?tenantId=${tenant.id}&limit=${limit}&offset=${appOffset}`
                 );
@@ -78,7 +79,7 @@ export async function syncChirpstackData() {
                     `Tenant ${tenant.name} → fetched ${applications.length} apps`
                 );
 
-                // ✅ Batch DB writes
+                
                 await Promise.all(
                     applications.map((app: any) =>
                         prisma.chirpstackApplication.upsert({
@@ -109,6 +110,6 @@ export async function syncChirpstackData() {
 
     } catch (error) {
         console.error("❌ Sync failed:", error);
-        throw error; // let global error handler handle
+        throw error;
     }
 }

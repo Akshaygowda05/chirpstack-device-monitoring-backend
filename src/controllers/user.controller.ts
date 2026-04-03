@@ -1,18 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import { userService } from "../services/user.service";
+import AppError from "../utils/AppError";
+import { StatusCodes } from "http-status-codes";
 
 export class UserController {
     static async createUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userData = req.body;
             if (!userData) {
-                res.status(400).json({ error: 'Request body is required' });
-                return;
+
+                throw new AppError('Request body is required', StatusCodes.BAD_REQUEST);
+                
             }
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
         } catch (error) {
-            next(error);// this will pass the error to the global error handler
+            next(error);// 
         }
     }
 
@@ -45,7 +48,7 @@ export class UserController {
             if (loginResult) {
                 res.status(200).json(loginResult);
             } else {
-                res.status(401).json({ error: 'Invalid credentials' });
+                throw new AppError('Invalid email or password', StatusCodes.UNAUTHORIZED);
             }
         } catch (error) {
             next(error);// this will pass the error to the global error handler

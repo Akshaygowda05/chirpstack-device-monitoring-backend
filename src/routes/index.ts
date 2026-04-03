@@ -4,7 +4,7 @@ const router = express.Router();
 
 
 import userRoutes from "./userRoutes";
-import chripstackRouter from "../services/externalchripstackapi";
+import chripstackRouter from "./externalchripstackapi";
 import fetchRedisDataRouter from "./redis.Routes";
 import robotsBatteriesRouter from "./robotsBatteries.Routes";
 

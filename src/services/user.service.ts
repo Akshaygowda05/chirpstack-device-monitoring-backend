@@ -3,6 +3,10 @@ import jwt from 'jsonwebtoken';
 import { Role } from '../generated/prisma/enums';
 import { prisma } from '../config/primsaConfig';
 import envconfig from '../config/envConfig';
+import AppError from '../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
+import apiClient from '../config/apiclient';
+import { syncChirpstackData } from '../seed/applicationAndTenantId.repo';
 
 
 
@@ -21,39 +25,55 @@ interface userData{
 
 export class UserService{
 
-    static async CreateUser(data:userData):Promise<userData>{
-        try {
+      static async CreateUser(data: userData): Promise<userData> {
+    try {
 
-            const existingUser = await prisma.user.findUnique({
-                where:{
-                    email: data.email
-                }
-            })
+        console.log('Creating user with data:', data);
+        console.log("application id is int or null",typeof(data.applicationId))
+        const existingUser = await prisma.user.findUnique({
+            where: { email: data.email }
+        });
+        if (existingUser) throw new AppError('User already exists', StatusCodes.BAD_REQUEST);
 
-            if(existingUser){
-                throw new Error('User with this email already exists');
+       
+        const appId = data.role === Role.USER 
+            ? await (async () => {
+              
+                const dbApp = await prisma.chirpstackApplication.findUnique({
+                    where: { chirpstackId: String(data.applicationId) },
+                    select: { id: true,chirpstackId: true }
+                });
+
+                if (dbApp) return dbApp.chirpstackId;
+
+             
+                const result = await apiClient.get(`/api/applications/${data.applicationId}`);
+                if (!result?.data?.application) 
+                    throw new AppError('Invalid application ID', StatusCodes.BAD_REQUEST);
+
+                await syncChirpstackData();
+                return result.data.application.id;
+            })()
+            : null;
+
+        const hashPassword = await bycrypt.hash(data.password, 10);
+
+        await prisma.user.create({
+            data: {
+                name: data.name,
+                email: data.email,
+                password: hashPassword,
+                role: data.role,
+                applicationId: appId
             }
+        });
 
-            const hashpassword = await bycrypt.hash(data.password,10);
-
-            await prisma.user.create({
-                data:{
-                    name: data.name,
-                    email: data.email,
-                    password: hashpassword,
-                    role: data.role,
-                    ...(data.applicationId && { applicationId: data.applicationId })
-                    
-                }
-            })
         return data;
-            
-        } catch (error) {
-            console.error('Error creating user:', error);
-            throw error;
-        }
-     
-    }   
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
+}  
  
     static async deletUser(id:number):Promise<void>{
         try {

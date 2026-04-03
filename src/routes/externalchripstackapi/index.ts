@@ -16,10 +16,11 @@ interface CustomRequest extends Request {
 
 
 // this is to get devices by group id 
-chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res: Response,next: NextFunction) => {
+chripstackRouter.get('/v1/devices/:groupId',authenticate ,async (req: Request, res: Response,next: NextFunction) => {
     const { groupId } = req.params;
     try {
         const applicationId = (req as CustomRequest).applicationId;
+
         if(!applicationId){
            throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
@@ -30,7 +31,7 @@ chripstackRouter.get('/devices/:groupId',authenticate ,async (req: Request, res:
                 multicastGroupId: groupId
             }
         });
-        res.json({ result: response.data.result }); 
+        res.json({ result: response.data }); 
     } catch (error) {
         const err: any = error;
         loggers.error('API Error:', err.response?.data || err.message);
