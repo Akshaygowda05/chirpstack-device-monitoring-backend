@@ -1,4 +1,4 @@
-import ValidateOdometerValue from "../rules/odomter.value";
+import ValidateOdometerValue from "../utils/odomter.value";
 import { prisma } from "../config/primsaConfig";
 import RobotRepository from "../services/robot.repository";
 import loggers from "../config/logger";

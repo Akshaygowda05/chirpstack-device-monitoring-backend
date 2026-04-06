@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/primsaConfig';
 import { redisClient } from '../config/redisConfig';
 
-export class ReportforHomePage {
+class ReportforHomePage {
 
 // this is all only for the home and user who had login but admin it will be diffrent     
-async getPanelsData(req: Request, res: Response) {
+static async getPanelsData(req: Request, res: Response) {
   try {
     const applicationId = req.applicationId;
 
@@ -95,7 +95,7 @@ async getPanelsData(req: Request, res: Response) {
 
 
 // for being it is not used 
-async getAvgDichargeData(req: Request, res: Response) {
+static async getAvgDichargeData(req: Request, res: Response) {
   try {
     const applicationId = req.applicationId;
 
@@ -114,7 +114,7 @@ async getAvgDichargeData(req: Request, res: Response) {
 
     const cacheKey = `${applicationId}_avgBatteryDischarge`;
 
-    // ✅ Check Redis cache
+    
     const redisAvgDischarge = await redisClient.get(cacheKey);
 
     if (redisAvgDischarge) {
@@ -204,7 +204,7 @@ async getAvgDichargeData(req: Request, res: Response) {
   }
 }
 
-async getAverageBatteryDischargeCycle(req: Request, res: Response) {
+static async getAverageBatteryDischargeCycle(req: Request, res: Response) {
     try {
         interface AverageBatteryDischarge {
             date: string;
@@ -249,7 +249,7 @@ async getAverageBatteryDischargeCycle(req: Request, res: Response) {
 
 // this is to get the how many were there online count
 
-async getOnlineOfflineCount(req: Request, res: Response) {
+static async getOnlineOfflineCount(req: Request, res: Response) {
   try {
     interface OnlineOfflineCount {
       date: string;
@@ -317,3 +317,5 @@ async getOnlineOfflineCount(req: Request, res: Response) {
 
 
 }
+
+export default ReportforHomePage;

@@ -67,6 +67,7 @@ model ChirpstackApplication {
 
   users          User[]
   siteConfiguration SiteConfiguration?
+  SchedularData  SchedularData?   
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -102,6 +103,19 @@ model SiteConfiguration {
   updatedAt             DateTime @updatedAt
 }
 
+// this is for the modal for the scheduling
+
+model SchedularData{
+  id Int @id @default(autoincrement()) // this is id assinged
+  time String     // at what time it mis triggering
+  data String  // this is data what i need to send
+  groupName String[] // this is the group only to show for the client
+  groupId String[] // this is important for the actuall to send downlink
+  application  ChirpstackApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId    Int @unique
+  createdAt     DateTime @default(now()) // when it is created we will geto know
+  updatedAt     DateTime @updatedAt  // once it is updated to the 
+}
 
 model  activeDeviceCount {
   id Int @id @default(autoincrement())
@@ -111,7 +125,6 @@ model  activeDeviceCount {
   inactiveCount Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([applicationId])
 }
 
