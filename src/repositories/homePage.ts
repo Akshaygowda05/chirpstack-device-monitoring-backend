@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/primsaConfig';
-import { redisClient } from '../config/redisConfig';
+import { getRedisClient } from '../config/redis';
+
+
+const redis = getRedisClient ();
 
 class ReportforHomePage {
 
@@ -25,7 +28,7 @@ static async getPanelsData(req: Request, res: Response) {
     let panelData: PanelDataType[];
 
     
-    const redisPanelData = await redisClient.get(cacheKey);
+    const redisPanelData = await redis.get(cacheKey);
 
     if (redisPanelData) {
       panelData = JSON.parse(redisPanelData);
@@ -65,7 +68,7 @@ static async getPanelsData(req: Request, res: Response) {
         panelData.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       
-      await redisClient.set(cacheKey, JSON.stringify(panelData), 'EX', 24 *60 * 60);
+      await redis .set(cacheKey, JSON.stringify(panelData), 'EX', 24 *60 * 60);
     }
 
    
@@ -115,7 +118,7 @@ static async getAvgDichargeData(req: Request, res: Response) {
     const cacheKey = `${applicationId}_avgBatteryDischarge`;
 
     
-    const redisAvgDischarge = await redisClient.get(cacheKey);
+    const redisAvgDischarge = await redis.get(cacheKey);
 
     if (redisAvgDischarge) {
       AvgDischarge = JSON.parse(redisAvgDischarge);
@@ -162,7 +165,7 @@ static async getAvgDichargeData(req: Request, res: Response) {
       );
 
      
-      await redisClient.set(
+      await redis.set(
         cacheKey,
         JSON.stringify(AvgDischarge),
         "EX",

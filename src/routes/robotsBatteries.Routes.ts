@@ -4,7 +4,11 @@ import { StatusCodes } from "http-status-codes";
 import apiClient from "../config/apiclient";
 import authenticate from "../middlewares/auth.middlware";
 import { app } from "../server";
-import { redisClient } from "../config/redisConfig";
+import { getRedisClient } from "../config/redis";
+
+
+const redis = getRedisClient();
+
 
 
 
@@ -49,7 +53,7 @@ robotsBatteriesRouter.get(
       }
 
     
-      const pipeline = redisClient.pipeline();
+      const pipeline = redis.pipeline();
 
 
       devicesList.forEach((device: any) => {

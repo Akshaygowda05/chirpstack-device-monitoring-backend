@@ -67,7 +67,7 @@ model ChirpstackApplication {
 
   users          User[]
   siteConfiguration SiteConfiguration?
-  SchedularData  SchedularData?   
+  SchedularData  SchedularData[]   
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -111,8 +111,8 @@ model SchedularData{
   data String  // this is data what i need to send
   groupName String[] // this is the group only to show for the client
   groupId String[] // this is important for the actuall to send downlink
-  application  ChirpstackApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId    Int @unique
+  application  ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
+  applicationId    String
   createdAt     DateTime @default(now()) // when it is created we will geto know
   updatedAt     DateTime @updatedAt  // once it is updated to the 
 }

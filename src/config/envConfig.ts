@@ -7,6 +7,8 @@ class envconfig {
     private static CHRIPSTACK_KEY: string;
     private static TOKEN_SECRET: string;
     private static MQTT_URL: string;
+    private static REDIS_HOST: string;
+    private static REDIS_PORT: number;
     
 
     static initialize() {
@@ -30,6 +32,14 @@ class envconfig {
     }
     static getMqttUrl(): string {
         return envconfig.MQTT_URL;
+    }
+
+    static getRedisHost(): string {
+        return process.env.REDIS_HOST || "localhost";
+    }
+
+    static getRedisPort(): number {
+        return Number(process.env.REDIS_PORT) || 6379;
     }
     
 }

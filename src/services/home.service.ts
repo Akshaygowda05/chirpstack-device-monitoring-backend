@@ -1,6 +1,11 @@
-import { redisClient } from "../config/redisConfig";
+
+
+import { getRedisClient } from "../config/redis";
 import { ReportRepository } from "../repositories/home.repository";
 import { fillMissingDates } from "../utils/date.util";
+
+const redis = getRedisClient();
+
 
 export class homeService{
     constructor (private repo :ReportRepository){}
@@ -8,7 +13,7 @@ export class homeService{
     async getPannelsData(applicationId:string){
         const cachekey = `${applicationId}_pannelsData`;
 
-        const cached = await redisClient.get(cachekey)
+        const cached = await redis.get(cachekey)
 
         if(cached){
             return JSON.parse(cached)
@@ -18,7 +23,7 @@ export class homeService{
 
         pannelData = fillMissingDates(pannelData,5,"totalCleaned")
 
-        await redisClient.set(cachekey,JSON.stringify(pannelData), "EX",3600);
+        await redis.set(cachekey,JSON.stringify(pannelData), "EX",3600);
 
         return pannelData
     }
@@ -33,14 +38,14 @@ export class homeService{
   async getAvgDischarge(applicationId:string){
     const cacheKey = `${applicationId}_AvgDischarge`;
 
-    const cached = await redisClient.get(cacheKey);
+    const cached = await redis.get(cacheKey);
 
     if(cached) {return JSON.parse(cached)}
 
     let avgDischage = await this.repo.getAvgDischarge(applicationId)
     avgDischage = fillMissingDates(avgDischage,5,'AvgDischarge')
 
-    await redisClient.set(cacheKey,JSON.stringify(avgDischage),"EX",3600)
+    await redis.set(cacheKey,JSON.stringify(avgDischage),"EX",3600)
 
     return avgDischage
   }
@@ -57,7 +62,7 @@ export class homeService{
 //   async getActiveCount(applicationId:string){
 //     let cachekey = `${applicationId}_activeDeviceCount`
 
-//     const cached = await redisClient.get(cachekey);
+//     const cached = await redis.get(cachekey);
 
 //     if(cached){
 //         return JSON.parse(cached)
