@@ -8,8 +8,8 @@ let redis: Redis;
 export const getRedisClient = () => {
   if (!redis) {
     redis = new Redis({
-      host: String(envconfig.getRedisHost) || "localhost",
-      port: Number(envconfig.getRedisPort) || 6379,
+      host: String(envconfig.getRedisHost()) || "localhost",
+      port: Number(envconfig.getRedisPort()) || 6379,
       maxRetriesPerRequest: null,
     });
 

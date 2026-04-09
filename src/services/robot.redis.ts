@@ -1,4 +1,6 @@
-import { redisClient } from "../config/redisConfig";
+import { getRedisClient } from "../config/redis";
+
+let redisClient = getRedisClient();
 
 export async function storeDataInRedis(data:any){
 

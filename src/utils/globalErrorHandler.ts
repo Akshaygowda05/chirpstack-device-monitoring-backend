@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import loggers from "../config/logger";
 
 export function globalErrorHandler(
     err: any, 
@@ -21,7 +22,7 @@ export function globalErrorHandler(
             isOperational: false
         };
     }
-
+  loggers.error(`Error: ${errorData.message}, Status: ${errorData.status}, Operational: ${errorData.isOperational}`);
    
     res.status(errorData.status).json({
         success: false,

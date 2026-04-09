@@ -1,11 +1,11 @@
 import { Worker } from "bullmq";
-import { redisClient } from "../config/redisConfig";
 import loggers from "../config/logger";
 import { validateZeroOrNot } from "../utils/robotdata.parse";
 import { processMqttData } from "../controllers/mqttData.StateMachine";
 import { storeDataInRedis } from "./robot.redis";
+import { getRedisClient } from "../config/redis";
 
-
+let redis = getRedisClient();
 const  worker = new Worker("dataQueue",async (job) =>{  
     
     const {topic,payload} = job.data;
@@ -40,7 +40,7 @@ const  worker = new Worker("dataQueue",async (job) =>{
     }
 
 ,{
-    connection:redisClient,
+    connection:redis,
     concurrency:10
 })
 

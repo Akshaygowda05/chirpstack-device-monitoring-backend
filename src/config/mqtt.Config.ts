@@ -1,9 +1,9 @@
 import mqtt , { MqttClient } from 'mqtt';
 import dotenv from 'dotenv';
 import loggers from './logger';
-import { queueClient } from './redisConfig';
 import envconfig from './envConfig';
 import AppError from '../utils/AppError';
+import { dataQueue } from '../queues/data.queue';
 
 
 
@@ -58,7 +58,7 @@ export class MQTTconfig{
         try{
             const payload = message.toString();
             //console.log(`Received MQTT message on topic ${topic}: ${payload}`);
-           await  queueClient.add('processMqttMessage',{topic,payload},{
+           await  dataQueue.add('processMqttMessage',{topic,payload},{
                 removeOnComplete:true,
                 removeOnFail:true
             });

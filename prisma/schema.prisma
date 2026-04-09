@@ -46,7 +46,8 @@ model User{
   id Int @id @default(autoincrement())
   email String @unique
   password String
-  name String // site name with description
+  name String // nameof the user 
+  siteName   String? // this is for the site name which is optional
   role Role @default(USER)
   application  ChirpstackApplication ? @relation(fields: [applicationId], references: [chirpstackId])
   applicationId String?

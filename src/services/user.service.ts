@@ -196,15 +196,15 @@ export class UserService{
         try {
             const users = await prisma.user.findMany({
                 where:{
-                    isActive: true
+                     isActive: true
                 },
-                select:{
-                    id: true,
-                    name: true,
-                    email: true,
-                    role: true,
-                    createdAt: true,
-                    updatedAt: true
+                include:{
+                    application: {
+                        select:{
+                            chirpstackId: true,
+                            name: true
+                        }
+                    }
                 }
             });
             return users;

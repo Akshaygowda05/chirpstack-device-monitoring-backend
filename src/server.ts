@@ -6,7 +6,7 @@ import { MQTTconfig } from "./config/mqtt.Config";
 import  "./services/queue.worker";
 import { globalErrorHandler } from "./utils/globalErrorHandler";
 import router from "./routes";
-
+import cors from "cors";
 
 const port = 3000;
 
@@ -19,6 +19,8 @@ export const server = http.createServer(app);
     }
 })
 
+
+app.use(cors());
 console.log("Starting server...");
 app.use(express.json());
 

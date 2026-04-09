@@ -5,10 +5,10 @@ import { ReportRepository } from "../repositories/home.repository";
 import { fillMissingDates } from "../utils/date.util";
 
 const redis = getRedisClient();
-
+let repo = new ReportRepository()
 
 export class homeService{
-    constructor (private repo :ReportRepository){}
+   // constructor (private repo :ReportRepository){}
 
     async getPannelsData(applicationId:string){
         const cachekey = `${applicationId}_pannelsData`;
@@ -19,7 +19,7 @@ export class homeService{
             return JSON.parse(cached)
         }
 
-        let pannelData = await this.repo.getLast5DaysPanels(applicationId);
+        let pannelData = await repo.getLast5DaysPanels(applicationId);
 
         pannelData = fillMissingDates(pannelData,5,"totalCleaned")
 
