@@ -49,7 +49,8 @@ chripstackRouter.get('/devices', authenticate, async (req: Request, res: Respons
         }
          const response = await apiClient.get('/api/devices', {
             params: {
-                limit: req.query.limit || 1000,
+                limit: req.query.limit || 10,
+                offset: req.query.offset || 0,
                 applicationId: applicationId
             }   
         });

@@ -3,7 +3,7 @@ import express,{Request,Response,NextFunction} from "express";
 import http from 'http';
 import { Server } from "socket.io";
 import { MQTTconfig } from "./config/mqtt.Config";
-import  "./services/queue.worker";
+import  "./worker/queue.worker";
 import { globalErrorHandler } from "./utils/globalErrorHandler";
 import router from "./routes";
 import cors from "cors";

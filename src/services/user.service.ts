@@ -14,6 +14,7 @@ import { syncChirpstackData } from '../seed/applicationAndTenantId.repo';
 interface userData{
     name: string;
     email: string;
+    site: string;
     password: string;
     role: Role;
     applicationId: number | undefined
@@ -29,7 +30,8 @@ export class UserService{
     try {
 
         console.log('Creating user with data:', data);
-        console.log("application id is int or null",typeof(data.applicationId))
+
+
         const existingUser = await prisma.user.findUnique({
             where: { email: data.email }
         });
@@ -51,7 +53,7 @@ export class UserService{
                 if (!result?.data?.application) 
                     throw new AppError('Invalid application ID', StatusCodes.BAD_REQUEST);
 
-                await syncChirpstackData();
+                 await syncChirpstackData();
                 return result.data.application.id;
             })()
             : null;
@@ -62,6 +64,7 @@ export class UserService{
             data: {
                 name: data.name,
                 email: data.email,
+                siteName: data.site,
                 password: hashPassword,
                 role: data.role,
                 applicationId: appId

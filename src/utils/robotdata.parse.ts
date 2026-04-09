@@ -8,6 +8,10 @@ import loggers from "../config/logger";
 
             const objectValue =data?.object;
 
+             if (!data || typeof data !== 'object') {
+    throw new Error('Invalid input: expected object');
+  }
+
             const isAllValueisZero = Object.entries(objectValue).every(([_,value])=>value == 0)
 
             if(isAllValueisZero){

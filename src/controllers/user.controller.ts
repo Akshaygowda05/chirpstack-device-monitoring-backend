@@ -12,6 +12,10 @@ export class UserController {
                 throw new AppError('Request body is required', StatusCodes.BAD_REQUEST);
                 
             }
+
+            if(userData.role === 'USER' && !userData.applicationId){
+                throw new AppError('Application ID is required for USER role', StatusCodes.BAD_REQUEST);
+            }
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
         } catch (error) {

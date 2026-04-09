@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import loggers from "../config/logger";
 import { validateZeroOrNot } from "../utils/robotdata.parse";
 import { processMqttData } from "../controllers/mqttData.StateMachine";
-import { storeDataInRedis } from "./robot.redis";
+import { storeDataInRedis } from "../services/robot.redis";
 import { getRedisClient } from "../config/redis";
 
 let redis = getRedisClient();
