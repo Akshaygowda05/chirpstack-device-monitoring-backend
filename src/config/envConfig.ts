@@ -35,7 +35,7 @@ class envconfig {
     }
 
     static getRedisHost(): string {
-        return process.env.REDIS_HOST || "localhost";
+        return process.env.REDIS_HOST!;
     }
 
     static getRedisPort(): number {

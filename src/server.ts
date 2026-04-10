@@ -21,8 +21,10 @@ export const server = http.createServer(app);
 
 
 app.use(cors());
+app.use(express.json()); // this is to parse the incoming request body as JSON
+app.use(express.urlencoded({ extended: true }));
+
 console.log("Starting server...");
-app.use(express.json());
 
 
 

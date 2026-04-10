@@ -6,6 +6,7 @@ import loggers from '../../config/logger';
 import { prisma } from '../../config/primsaConfig';
 import AppError from '../../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
+import { server } from '../../server';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
@@ -67,9 +68,21 @@ chripstackRouter.get('/devices', authenticate, async (req: Request, res: Respons
 chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Response,next: NextFunction) => {
     try {
         const { deviceId } = req.params;
+
+        const now = new Date();
+        const { data } = req.body;  // the data should be base64 formate
+        const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString(); // after 30 min it has to expire
+         
         const response = await apiClient.post(
-            `/api/devices/${deviceId}/queue`,
-            req.body
+            `/api/devices/${deviceId}/queue`,{
+              queueItem: {
+                data,
+                fPort: 1,
+                expiresAt,
+                confirmed: true,
+
+            }
+        }
         );
         res.json(response.data);
         loggers.info(`Downlink queued for device ${deviceId}`);
@@ -170,39 +183,63 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 // });
 
 // if i fetch groups by user ,then i can send data to particualr group and all the devices in that group will get the data, so here we are sending data to group and then group will send to all the devices in that group
-chripstackRouter.post('/multicast-groups/:groupId/queue', async (req:Request, res:Response,next: NextFunction) => {
+chripstackRouter.post('/multicast-groups/queue', async (req, res, next) => {
     try {
-        const { groupId } = req.params;
-        const { data } = req.body;
-        const response = await apiClient.post(
-            `/api/multicast-groups/${groupId}/queue`,
-            {
-                queueItem: {
-                    data: data,
-                    fPort: 1
-                }
-            }
-        );
-        (async () => {
-            try {
-               // await triggermulticastGroup([groupId], req.body);   wait for the same trigger to complete
-            } catch (err:any) {
-                console.error("Background trigger error:", err.message);
-            }
-        })();
+        const { groupId, data } = req.body;
 
-        // 3. Respond immediately (do not wait for trigger)
-        res.json({
-            multicastResponse: response.data,
+        if (!groupId || (Array.isArray(groupId) && groupId.length === 0)) {
+            throw new AppError('Group ID is required', StatusCodes.BAD_REQUEST);
+        }
+
+        if (!data) {
+            throw new AppError('Data is required', StatusCodes.BAD_REQUEST);
+        }
+
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+        const groupIdArray = Array.isArray(groupId) ? groupId : [groupId];
+
+        const promises = groupIdArray.map((gId: string) => {
+            return apiClient.post(`/api/multicast-groups/${gId}/queue`, {
+                queueItem: {
+                    data,
+                    fPort: 1,
+                    expiresAt,
+                    confirmed: true,
+                }
+            })
+            .then((response) => {
+                const result = response.data;
+
+                const isSuccess =
+                    result?.multicastQueueItem?.fCnt !== undefined;
+
+                server.emit("multicast-status", {
+                    groupId: gId,
+                    status: isSuccess ? "success" : "failed",
+                    fCnt: result?.multicastQueueItem?.fCnt,
+                });
+            })
+            .catch((error) => {
+                server.emit("multicast-status", {
+                    groupId: gId,
+                    status: "failed",
+                    reason: error.response?.data || error.message
+                });
+            });
         });
 
-    } catch (error: any) {
-        loggers.error('API Error:', error.response?.data || error.message);
-     next(error); // Pass the error to the global error handler
+        await Promise.all(promises);
+
+        res.status(200).json({
+            success: true,
+            message: "Multicast queued successfully"
+        });
+
+    } catch (error) {
+        next(error);
     }
 });
-
-
 
 export default chripstackRouter;
 

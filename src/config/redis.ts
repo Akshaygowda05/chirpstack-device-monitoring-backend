@@ -11,10 +11,15 @@ export const getRedisClient = () => {
       host: String(envconfig.getRedisHost()) || "localhost",
       port: Number(envconfig.getRedisPort()) || 6379,
       maxRetriesPerRequest: null,
+
     });
 
     redis.on("connect", () => {
       loggers.info("✅ Redis connected");
+    });
+
+    redis.on("ready", () => {
+    loggers.info("✅ Redis READY (fully connected)");
     });
 
     redis.on("error", (err) => {

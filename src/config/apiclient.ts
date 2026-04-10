@@ -5,7 +5,8 @@ const apiClient = axios.create({
     baseURL: envconfig.getChirpstackUrl(),
     headers: {
         'Content-Type': 'application/json',
-        'Grpc-Metadata-Authorization': `Bearer ${envconfig.getChirpstackKey()}`
+        'Grpc-Metadata-Authorization': `Bearer ${envconfig.getChirpstackKey()}`,
+        'accept': 'application/json'
     }
 })
 

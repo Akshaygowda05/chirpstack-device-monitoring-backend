@@ -117,6 +117,7 @@ export class UserService{
                     id: true,
                     role: true,
                     name: true,
+                    siteName: true,
                     applicationId: true,
                     isActive: true
                 }
@@ -137,14 +138,16 @@ export class UserService{
            const toke  = jwt.sign({
             userId: user.id,
             role: user.role,
-            applicationId: user.applicationId
-           }, envconfig.getTokenSecret(), { expiresIn: '1h' });
+            applicationId: user.applicationId,
+    
+           }, envconfig.getTokenSecret(), { expiresIn: '2h' });
 
 
            return {
             token: toke,
             name: user.name,
-            role: user.role
+            role: user.role,
+            siteName: user.siteName,
            };
         } catch (error) {
             console.error('Error during user login:', error);

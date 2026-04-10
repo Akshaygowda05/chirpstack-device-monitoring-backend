@@ -13,8 +13,8 @@ export class UserController {
                 
             }
 
-            if(userData.role === 'USER' && !userData.applicationId){
-                throw new AppError('Application ID is required for USER role', StatusCodes.BAD_REQUEST);
+            if(userData.role === 'USER' && (!userData.applicationId || !userData.siteName) ){
+                throw new AppError('Application ID and Site Name are required for USER role', StatusCodes.BAD_REQUEST);
             }
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
