@@ -41,7 +41,7 @@ export async function storeDataInRedis(data:any){
     //    if(redisSet){
     //     console.log(`Data stored in Redis for device ${deviceEui}`);
     //    }
-         await redisClient.expire(`device:${deviceEui}`, 3600); // Expire after 1 hour
+         await redisClient.expire(`device:${deviceEui}`, 1800); // Expire after 30 min
 
 
        // console.log("this is what i need to check wheather proper data is comng or not ",objectData)

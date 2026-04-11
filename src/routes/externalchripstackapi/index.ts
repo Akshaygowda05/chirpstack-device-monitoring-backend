@@ -7,13 +7,18 @@ import { prisma } from '../../config/primsaConfig';
 import AppError from '../../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { server } from '../../server';
+import { getRedisClient } from '../../config/redis';
+import { HttpStatusCode } from 'axios';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
+
+const THIRTY_MINUTES = 30 * 60 * 1000; 
 
 interface CustomRequest extends Request {
     applicationId?: string;
 }
 
+let redis = getRedisClient();
 
 
 // this is to get devices by group id 
@@ -42,27 +47,80 @@ chripstackRouter.get('/v1/devices/:groupId',authenticate ,async (req: Request, r
 
 
 // fetch the devices list
-chripstackRouter.get('/devices', authenticate, async (req: Request, res: Response,next: NextFunction) => {
+chripstackRouter.get(
+  "/devices",
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const applicationId = (req as CustomRequest).applicationId;
-        if(!applicationId){
-            throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
-        }
-         const response = await apiClient.get('/api/devices', {
-            params: {
-                limit: req.query.limit || 10,
-                offset: req.query.offset || 0,
-                applicationId: applicationId
-            }   
-        });
-        res.json({ result: response.data.result });
-    } catch (err) {
-        const error: any = err;
-        loggers.error('API Error:', error.response?.data || error.message);
-        next(error); // Pass the error to the global error handler
-    }
-});
+      const applicationId = (req as CustomRequest).applicationId;
 
+      if (!applicationId) {
+        throw new AppError(
+          "Application ID missing in user token, please login again",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+
+      const { limit = 10, offset = 0 } = req.query;
+
+      const response = await apiClient.get("/api/devices", {
+        params: {
+          limit,
+          offset,
+          applicationId,
+        },
+      });
+
+      const devices = response.data.result || [];
+
+      if (devices.length === 0) {
+        return res.status(HttpStatusCode.Ok).json({ result: [] });
+      }
+
+      const pipeline = redis.pipeline();
+
+      devices.forEach((device: any) => {
+        pipeline.hget(`device:${device.devEui}`, "CH5");
+      });
+
+      const pipelineResults = await pipeline.exec();
+
+      
+
+      const enrichedDevices = devices.map(
+        (device: any, index: number) => {
+          const batteryVoltage = pipelineResults?.[index]?.[1];
+
+          const lastSeen = device?.lastSeenAt
+            ? new Date(device.lastSeenAt)
+            : null;
+   //console.log("this is where i an missig it out i dont know what to do,",lastSeen)
+          let isActive = "offline";
+
+          if (lastSeen) {
+            const timeDiff = Date.now() - lastSeen.getTime();
+            isActive =
+              timeDiff <= THIRTY_MINUTES ? "online" : "offline";
+          }
+
+          return {
+            ...device,
+            batteryVoltage: batteryVoltage ?? "0",
+            isActive,
+          };
+        }
+      );
+
+      return res
+        .status(HttpStatusCode.Ok)
+        .json({ result: enrichedDevices });
+    } catch (err) {
+      const error: any = err;
+      loggers.error("API Error:", error.response?.data || error.message);
+      next(error);
+    }
+  }
+);
 
 // toggle downlink for device(for this authneticate we dont want )
 chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Response,next: NextFunction) => {
