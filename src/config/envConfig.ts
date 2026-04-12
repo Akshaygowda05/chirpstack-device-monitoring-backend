@@ -18,7 +18,7 @@ class envconfig {
         envconfig.MQTT_URL = process.env.MQTT_URL as string;
     }
 
-    static getChirpstackUrl(): string {
+    static  getChirpstackUrl(): string {
         return envconfig.CHRIPSTACK_URL;
     }
 

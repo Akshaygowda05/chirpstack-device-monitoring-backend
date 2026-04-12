@@ -19,6 +19,8 @@ export const server = http.createServer(app);
     }
 })
 
+const mqttInstance= new MQTTconfig()
+
 
 app.use(cors());
 app.use(express.json()); // this is to parse the incoming request body as JSON
@@ -33,6 +35,12 @@ console.log("Starting server...");
 new MQTTconfig()
 
 app.use('/',router);
+app.get('/api/health', (req, res) => {
+  res.json({
+    mqtt:mqttInstance.getMqttHealth ,
+    status: 'OK'
+  });
+});
 
 app.use(globalErrorHandler); 
 

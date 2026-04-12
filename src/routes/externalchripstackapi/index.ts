@@ -61,13 +61,14 @@ chripstackRouter.get(
         );
       }
 
-      const { limit = 10, offset = 0 } = req.query;
+      const { limit = 10, offset = 0,search } = req.query;
 
       const response = await apiClient.get("/api/devices", {
         params: {
           limit,
           offset,
           applicationId,
+          search
         },
       });
 

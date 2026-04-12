@@ -12,10 +12,12 @@ export class MQTTconfig{
     private client:MqttClient;
     private readonly brokerURL:string;
     private readonly topic:string;
+    private isConnected: boolean = false;
 
     constructor(){
         this.brokerURL = envconfig.getMqttUrl() as string;
         this.topic = `+/+/device/+/event/up`;
+        
 
         this.client  = mqtt.connect(this.brokerURL,{
             clientId: `mqttjs_${Math.random().toString(16).slice(2, 10)}`,
@@ -33,7 +35,7 @@ export class MQTTconfig{
 
     private registerEvents(){
         this.client.on('connect',() => {
-            
+            this.isConnected= true;
             loggers.info('✅ Connected to MQTT broker')
             console.log("MQTT init running...");
             this.client.subscribe(this.topic,(err)=>{
@@ -47,8 +49,8 @@ export class MQTTconfig{
         this.client.on('message',(topic,message) => this.onMessage(topic,message));
         this.client.on('error',(error) => {
             loggers.error('❌ MQTT Error:',error.message)
-            throw new AppError('MQTT Connection Error',500,false);
-        
+            //throw new AppError('MQTT Connection Error',500,false); // i should not throw error becouse it will crash the app once mqtt is not runing
+              this.isConnected=true
         });
         this.client.on('reconnect',() => loggers.info('🔄 Reconnecting to MQTT broker...'));
         this.client.on('close',() => loggers.warn('⚠️ Disconnected from MQTT broker'));
@@ -67,6 +69,10 @@ export class MQTTconfig{
         catch(error){
             loggers.error('❌ Error processing MQTT message:',JSON.stringify(error));
         }
+    }
+
+    public get getMqttHealth():boolean{
+        return this.isConnected
     }
 
   
