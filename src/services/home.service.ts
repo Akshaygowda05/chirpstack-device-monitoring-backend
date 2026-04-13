@@ -8,7 +8,7 @@ const redis = getRedisClient();
 let repo = new ReportRepository()
 
 export class homeService{
-   // constructor (private repo :ReportRepository){}
+   constructor (private repo :ReportRepository){}
 
     async getPannelsData(applicationId:string){
         const cachekey = `${applicationId}_pannelsData`;

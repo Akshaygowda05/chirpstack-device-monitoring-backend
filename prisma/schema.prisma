@@ -121,7 +121,7 @@ model SchedularData{
 model  activeDeviceCount {
   id Int @id @default(autoincrement())
   applicationId String
-  tenantId Int
+  tenantId String
   activeCount Int
   inactiveCount Int
   createdAt DateTime @default(now())

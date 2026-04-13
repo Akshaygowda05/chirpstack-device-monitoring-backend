@@ -2,6 +2,7 @@ import { Redis } from "ioredis";
 import loggers from "./logger";
 import envconfig from "./envConfig";
 
+const MAX_EVENTS = 12;
 
 let redis: Redis;
 
@@ -28,4 +29,23 @@ export const getRedisClient = () => {
   }
 
   return redis;
+};
+
+
+
+export const storeApplicationEvents= async (applicationId: string, event: string) => {
+    const redisClient = getRedisClient();
+    const key = `app:${applicationId}:events`;
+    await redisClient.lpush(key, event);
+    await redisClient.ltrim(key, 0, MAX_EVENTS - 1);
+}
+
+export const getApplicationEvents = async (applicationID: string) => {
+  const redis = getRedisClient();
+
+  const key = `application:${applicationID}:events`;
+
+  const data = await redis.lrange(key, 0, MAX_EVENTS - 1);
+
+  return data.map((item) => JSON.parse(item));
 };

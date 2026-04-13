@@ -12,7 +12,7 @@ export class ReportRepository {
   async getLast5DaysPanels(applicationId: string) {
     return prisma.$queryRaw<any[]>`
       SELECT DATE("createdAt") as date,
-             SUM("panelsCleaned") as "totalCleaned"
+             SUM("panelsCleaned")::int as "totalCleaned"
       FROM "RobotData"
       WHERE "applicationId" = ${applicationId}
         AND "createdAt" >= CURRENT_DATE - INTERVAL '5 days'
@@ -25,7 +25,7 @@ export class ReportRepository {
   async getTodayPanels(applicationId: string) {
     return prisma.$queryRaw<any[]>`
       SELECT DATE("createdAt") as date,
-             SUM("panelsCleaned") as "totalCleaned"
+             SUM("panelsCleaned")::int as "totalCleaned"
       FROM "RobotData"
       WHERE "applicationId" = ${applicationId}
         AND "createdAt" >= CURRENT_DATE

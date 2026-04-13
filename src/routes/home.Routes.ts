@@ -1,14 +1,13 @@
 import express from "express";
 import authenticate from "../middlewares/auth.middlware";
-import ReportforHomePage from "../repositories/homePage";
+import { homeController } from "../controllers/home.controller";
+
 
 
 const homeRouter = express.Router();
 
-// this  last 5 days data 
-homeRouter.get(
-    '/v1/panels-data',
-    authenticate,ReportforHomePage.getPanelsData
-   
+homeRouter.get('/home/pannels-data',authenticate,homeController.prototype.getPannlesData)
 
-)
+// this  last 5 days data 
+
+export default homeRouter;

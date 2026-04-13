@@ -7,8 +7,8 @@ import { prisma } from '../../config/primsaConfig';
 import AppError from '../../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
 import { server } from '../../server';
-import { getRedisClient } from '../../config/redis';
-import { HttpStatusCode } from 'axios';
+import { getRedisClient, storeApplicationEvents } from '../../config/redis';
+import { all, HttpStatusCode } from 'axios';
 const  chripstackRouter = express.Router();
 require('dotenv').config();
 
@@ -77,6 +77,7 @@ chripstackRouter.get(
       if (devices.length === 0) {
         return res.status(HttpStatusCode.Ok).json({ result: [] });
       }
+      console.log("Devices fetched from ChirpStack API:", devices); // Debug log to check the fetched devices
 
       const pipeline = redis.pipeline();
 
@@ -95,7 +96,6 @@ chripstackRouter.get(
           const lastSeen = device?.lastSeenAt
             ? new Date(device.lastSeenAt)
             : null;
-   //console.log("this is where i an missig it out i dont know what to do,",lastSeen)
           let isActive = "offline";
 
           if (lastSeen) {
@@ -104,7 +104,7 @@ chripstackRouter.get(
               timeDiff <= THIRTY_MINUTES ? "online" : "offline";
           }
 
-          return {
+          return {  
             ...device,
             batteryVoltage: batteryVoltage ?? "0",
             isActive,
@@ -114,7 +114,11 @@ chripstackRouter.get(
 
       return res
         .status(HttpStatusCode.Ok)
-        .json({ result: enrichedDevices });
+        .json({ 
+           totalCount: response.data.totalCount || 0, 
+            result: enrichedDevices,
+            
+         });
     } catch (err) {
       const error: any = err;
       loggers.error("API Error:", error.response?.data || error.message);
@@ -123,9 +127,93 @@ chripstackRouter.get(
   }
 );
 
-// toggle downlink for device(for this authneticate we dont want )
-chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Response,next: NextFunction) => {
+
+// firstu yella data fectch madi amele redis ge store madi, amele redis inda yavdu offline matte online check madi store madi kalsbeku 
+// but this will happens once app will grow for time being we will fetch it directly 
+chripstackRouter.get(
+  "/v1/devices",
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const applicationId = (req as CustomRequest).applicationId;
+
+      if (!applicationId) {
+        throw new AppError(
+          "Application ID missing in token, please login again",
+          StatusCodes.BAD_REQUEST
+        );
+      }
+
+
+      let totalCount = 0;
+      let onlineDevices: any[] = [];
+      let offlineDevices: any[] = [];
+
+      let offset = 0;
+      const limit = 100;
+
+      while (true) {
+        const response = await apiClient.get("/api/devices", {
+          params: {
+            limit,
+            offset,
+            applicationId,
+          },
+        });
+
+        const devices = response.data.result || [];
+
+        for (const device of devices) {
+          totalCount++;
+
+          const lastSeen = device?.lastSeenAt
+            ? new Date(device.lastSeenAt)
+            : null;
+
+          if (!lastSeen) {
+            offlineDevices.push(device);
+            continue;
+          }
+
+          const timeDiff = Date.now() - lastSeen.getTime();
+
+          if (timeDiff <= THIRTY_MINUTES) {
+            onlineDevices.push(device);
+          } else {
+            offlineDevices.push(device);
+          }
+        }
+
+        if (devices.length < limit) {
+          break;
+        }
+
+        offset += limit;
+      }
+
+      return res.status(200).json({
+        totalCount,
+        onlineCount: onlineDevices.length,
+        offlineCount: offlineDevices.length,
+        onlineDevices,
+        offlineDevices,
+      });
+    } catch (err) {
+      const error: any = err;
+      loggers.error("API Error:", error.response?.data || error.message);
+      next(error);
+    }
+  }
+);
+
+
+
+
+// toggle downlink for device(for this authneticate we dont want )
+chripstackRouter.post('/devices/:deviceId/queue', authenticate,async (req: Request, res: Response,next: NextFunction) => {
+    try {
+        const applicationId = (req as CustomRequest).applicationId;
+
         const { deviceId } = req.params;
 
         const now = new Date();
@@ -144,6 +232,7 @@ chripstackRouter.post('/devices/:deviceId/queue', async (req: Request, res: Resp
         }
         );
         res.json(response.data);
+        await storeApplicationEvents(applicationId!, JSON.stringify({ type: 'DOWNLINK_QUEUED', deviceId, timeStamp: new Date().toISOString() })); // this is sometihng something i need to store based on the applicationID
         loggers.info(`Downlink queued for device ${deviceId}`);
     } catch (err) {
         const error: any = err;
@@ -167,7 +256,6 @@ chripstackRouter.get('/multicast-groups', authenticate,async (req:Request, res:R
     });
 
     res.json(response.data);
-    loggers.info('Fetched multicast groups successfully');
   } catch (err) {
     const error: any = err;
     loggers.error('API Error:', error.response?.data || error.message);
@@ -242,9 +330,13 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
 // });
 
 // if i fetch groups by user ,then i can send data to particualr group and all the devices in that group will get the data, so here we are sending data to group and then group will send to all the devices in that group
-chripstackRouter.post('/multicast-groups/queue', async (req, res, next) => {
+chripstackRouter.post('/multicast-groups/queue', authenticate, async (req, res, next) => {
     try {
         const { groupId, data } = req.body;
+        const applicationId = (req as CustomRequest).applicationId; 
+
+        if (!applicationId) {
+            throw new AppError('Application ID missing in user token, please login again', StatusCodes.BAD_REQUEST);}
 
         if (!groupId || (Array.isArray(groupId) && groupId.length === 0)) {
             throw new AppError('Group ID is required', StatusCodes.BAD_REQUEST);
@@ -289,6 +381,8 @@ chripstackRouter.post('/multicast-groups/queue', async (req, res, next) => {
         });
 
         await Promise.all(promises);
+
+        await storeApplicationEvents(applicationId!, JSON.stringify({ type: 'MULTICAST_QUEUED', groupIds: groupIdArray, timeStamp: new Date().toISOString() }));
 
         res.status(200).json({
             success: true,
