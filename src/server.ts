@@ -7,6 +7,7 @@ import  "./worker/queue.worker";
 import { globalErrorHandler } from "./utils/globalErrorHandler";
 import router from "./routes";
 import cors from "cors";
+import { activeInactiveJobs } from "./backgroungJobs/ActiveInactive";
 
 const port = 3000;
 
@@ -33,6 +34,7 @@ console.log("Starting server...");
 
 
 new MQTTconfig()
+//activeInactiveJobs()
 
 app.use('/',router);
 app.get('/api/health', (req, res) => {

@@ -59,16 +59,30 @@ export class homeService{
 
 //   } 
   
-//   async getActiveCount(applicationId:string){
-//     let cachekey = `${applicationId}_activeDeviceCount`
+  async getActiveCount(applicationId:string){
+    let cachekey = `${applicationId}_activeDeviceCount`
 
-//     const cached = await redis.get(cachekey);
+    const cached = await redis.get(cachekey);
 
-//     if(cached){
-//         return JSON.parse(cached)
-//     }
+    if(cached){
+        return JSON.parse(cached)
+    }
 
-//     let activeData = await this.repo.getDeviceActiveCount(applicationId)
-//       activeData = fillMissingDates(activeData,5,"devicesCount")
-//   }
+    let activeData = await this.repo.getDeviceActiveCount(applicationId)
+    console.log("🚀 ~ file: home.service.ts:82 ~ homeService ~ getActiveCount ~ activeData:", activeData)
+    activeData = fillMissingDates(activeData ,5,"devicesCount")
+    
+    await redis.set(cachekey,JSON.stringify(activeData),"EX",3600)
+    
+    return activeData
+  }
+
+  async getTodayActiveCount(applicationId:string){
+    const result = await this.repo.getTodayDeviceActiveCount(applicationId)  
+    return result[0]
+  }
+
+
+
+
 }

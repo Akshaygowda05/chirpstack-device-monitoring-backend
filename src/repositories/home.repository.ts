@@ -6,7 +6,11 @@ import { prisma } from "../config/primsaConfig";
       date: string;
       avgDischarge: number;
     }
-
+  interface ActiveInactiveCount {
+      date: string;
+      activeCount: number;
+      inactiveCount: number;
+    }
 export class ReportRepository {
 
   async getLast5DaysPanels(applicationId: string) {
@@ -63,15 +67,24 @@ export class ReportRepository {
   // this is for the something of last 5 days online count
 
 async getDeviceActiveCount(applicationId: string) {
-  return prisma.$queryRaw`
-    SELECT * FROM "activeDeviceCount"
+  return prisma.$queryRaw<ActiveInactiveCount[]>`
+    SELECT DATE("createdAt") as date, "activeCount", "inactiveCount"
+    FROM "activeDeviceCount"
     WHERE "applicationId" = ${applicationId}
-      AND "createdAt" >= CURRENT_DATE - INTERVAL '5 days'
+      AND "createdAt" >= CURRENT_DATE - INTERVAL '4 days'
+      AND "createdAt" < CURRENT_DATE
+    ORDER BY "createdAt" DESC
   `
 }
 
-
-
-
-
+// this is only to get the today active inactive count for the devices
+async getTodayDeviceActiveCount(applicationId: string) {
+  return prisma.$queryRaw<ActiveInactiveCount[]>`
+    SELECT "createdAt", "activeCount", "inactiveCount"
+    FROM "activeDeviceCount"
+    WHERE "applicationId" = ${applicationId}
+      AND "createdAt" >= CURRENT_DATE
+      AND "createdAt" < CURRENT_DATE + INTERVAL '1 day'
+  `
+}
 }

@@ -1,7 +1,7 @@
 import apiClient from "../config/apiclient";
 import loggers from "../config/logger";
 import { prisma } from "../config/primsaConfig";
-import pLimit from "p-limit";
+import pLimit from 'p-limit';
 
 const THIRTY_MIN = 30 * 60 * 1000;
 
@@ -65,7 +65,6 @@ const processApplications = async (tenantItem: any) => {
     const applications = appRes?.data?.result;
     if (!applications || applications.length === 0) break;
 
-    // 🔥 Parallel apps (limited)
     await Promise.all(
       applications.map((app: any) =>
         appLimitConcurrency(async () => {
@@ -103,7 +102,7 @@ const processDevices = async (app: any, tenantId: string) => {
     const devices = deviceRes?.data?.result;
     if (!devices || devices.length === 0) break;
 
-    // 🔥 Parallel device processing (optional but safe)
+    
     await Promise.all(
       devices.map((device: any) =>
         deviceLimitConcurrency(async () => {
