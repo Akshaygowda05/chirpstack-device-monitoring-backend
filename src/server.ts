@@ -35,25 +35,33 @@ app.use(express.urlencoded({ extended: true }));
 console.log("Starting server...");
 
 
-io.on("connection",(socket) =>{
-  const token = socket.handshake.auth?.token;
-
+io.on("connection", (socket) => {
   try {
-    const decode = jwt.verify(token, envconfig.getTokenSecret()) as { applicationId: string };
-    const applicationId = decode.applicationId;
+    const token = socket.handshake.auth?.token;
+
+    const decoded = jwt.verify(
+      token,
+      envconfig.getTokenSecret()
+    ) as { applicationId: string };
+
+    const applicationId = decoded.applicationId;
 
     socket.join(applicationId);
-    loggers.info(`✅ Client connected: ${socket.id} joined application room: ${applicationId}`);
 
-  } catch (error) {
-    socket.on("disconnect",() =>{
-    loggers.info("❌ Client disconnected",socket.id);
-  });
-  }  
-})
+    loggers.info(
+      `✅ Client connected: ${socket.id} joined ${applicationId}`
+    );
 
+    socket.on("disconnect", () => {
+      loggers.info("❌ Client disconnected", socket.id);
+    });
 
-new MQTTconfig()
+  } catch (err) {
+    loggers.warn("❌ Invalid socket token", socket.id);
+    socket.disconnect(); 
+  }
+});
+
 const mqttInstance= new MQTTconfig()
 activeInactiveJobs()
 
@@ -66,7 +74,7 @@ app.get('/api/health', (req, res) => {
 });
 
 
-app.get(`/api/events/`,authenticate,async(req:Request,res:Response)=>{
+app.get(`/api/events`,authenticate,async(req:Request,res:Response)=>{
 
   const applicationId = (req as any).applicationId;
   if(!applicationId){

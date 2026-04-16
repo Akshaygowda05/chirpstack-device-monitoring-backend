@@ -7,6 +7,7 @@ import AppError from '../utils/AppError';
 import { StatusCodes } from 'http-status-codes';
 import apiClient from '../config/apiclient';
 import { syncChirpstackData } from '../seed/applicationAndTenantId.repo';
+import { hash } from 'crypto';
 
 
 
@@ -26,58 +27,113 @@ interface userData{
 
 export class UserService{
 
-      static async CreateUser(data: userData): Promise<userData> {
-    try {
-
-        console.log('Creating user with data:', data);
-
-
-        const existingUser = await prisma.user.findUnique({
-            where: { email: data.email }
-        });
-        if (existingUser) throw new AppError('User already exists', StatusCodes.BAD_REQUEST);
-
-       
-        const appId = data.role === Role.USER 
-            ? await (async () => {
-              
-                const dbApp = await prisma.chirpstackApplication.findUnique({
-                    where: { chirpstackId: String(data.applicationId) },
-                    select: { id: true,chirpstackId: true }
-                });
-
-                if (dbApp) return dbApp.chirpstackId;
-
-             
-                const result = await apiClient.get(`/api/applications/${data.applicationId}`);
-                if (!result?.data?.application) 
-                    throw new AppError('Invalid application ID', StatusCodes.BAD_REQUEST);
-
-                 await syncChirpstackData();
-                return result.data.application.id;
-            })()
-            : null;
-
-        const hashPassword = await bycrypt.hash(data.password, 10);
-
-        await prisma.user.create({
-            data: {
-                name: data.name,
-                email: data.email,
-                siteName: data.site,
-                password: hashPassword,
-                role: data.role,
-                applicationId: appId
-            }
-        });
-
-        return data;
-    } catch (error) {
-        console.error('Error creating user:', error);
-        throw error;
-    }
-}  
+  static async CreateUser(data: userData) {
+  try {
  
+    if (!data.email || !data.password) {
+      throw new AppError('Missing required fields', StatusCodes.BAD_REQUEST);
+    }
+
+
+    const email = data.email.trim().toLowerCase();
+    const applicationIdInput = data.applicationId
+      ? String(data.applicationId).trim()
+      : null;
+
+    
+    console.log('Creating user:', { email, role: data.role });
+
+ 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    
+    let appId: string | null = null;
+
+    if (data.role === Role.USER) {
+      if (!applicationIdInput) {
+        throw new AppError('Application ID is required', StatusCodes.BAD_REQUEST);
+      }
+
+      // Try DB first
+      const dbApp = await prisma.chirpstackApplication.findUnique({
+        where: { chirpstackId: applicationIdInput },
+        select: { chirpstackId: true },
+      });
+
+      if (dbApp) {
+        appId = dbApp.chirpstackId;
+      } else {
+        // Fetch from external API
+        const result = await apiClient.get(
+          `/api/applications/${applicationIdInput}`
+        );
+
+        if (!result?.data?.application) {
+          throw new AppError('Invalid application ID', StatusCodes.BAD_REQUEST);
+        }
+
+        // Sync DB
+        await syncChirpstackData();
+
+        appId = String(result.data.application.id).trim();
+      }
+    }
+
+    const hashedPassword = await bycrypt.hash(data.password, 10);
+
+  
+    if (existingUser) {
+      if (existingUser.isActive) {
+        throw new AppError('User already exists', StatusCodes.BAD_REQUEST);
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { email },
+        data: {
+          name: data.name?.trim(),
+          password: hashedPassword,
+          role: data.role,
+          isActive: true,
+          applicationId: appId,
+          siteName: data.site?.trim(),
+        },
+      });
+
+      return {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        applicationId: updatedUser.applicationId,
+      };
+    }
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: data.name?.trim(),
+        email,
+        siteName: data.site?.trim(),
+        password: hashedPassword,
+        role: data.role,
+        applicationId: appId,
+      },
+    });
+
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+      applicationId: newUser.applicationId,
+    };
+
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+}
     static async deletUser(id:number):Promise<void>{
         try {
         const user =   await prisma.user.findUnique({
@@ -198,27 +254,52 @@ export class UserService{
     }
 
 
-    static async getAllUsers(){
-        try {
-            const users = await prisma.user.findMany({
-                where:{
-                     isActive: true
-                },
-                include:{
-                    application: {
-                        select:{
-                            chirpstackId: true,
-                            name: true
-                        }
-                    }
-                }
-            });
-            return users;
-        } catch (error) {
-            console.error('Error fetching users:', error);
-            throw error;
-        }
-    }
+    static async getAllUsers(page = 1, limit = 10) {
+  try {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc', // newest first
+        },
+        include: {
+          application: {
+            select: {
+              chirpstackId: true,
+              name: true,
+            },
+          },
+        },
+      }),
+
+      prisma.user.count(), 
+    ]);
+
+    return {
+      data: users.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isActive: user.isActive,
+        role: user.role,
+        application: user.application,
+      })),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+}
 }
 
 

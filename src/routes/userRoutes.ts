@@ -4,12 +4,12 @@ import UserController from "../controllers/user.controller";
 const userRoutes = express.Router();
 
 
-userRoutes.post('/v1/users/create',UserController.createUser);
+userRoutes.post('/v1/users/create',UserController.createUser); // it is used
 userRoutes.delete('/v1/users/:id',UserController.deleteUser);
 userRoutes.put('/v1/users/:id',UserController.updateUser);
-userRoutes.post('/v1/user/login',UserController.userlogin);
+userRoutes.post('/v1/user/login',UserController.userlogin); // it is also used 
 userRoutes.put('/v1/users/:id/password',UserController.updateUserPassword);
-userRoutes.get('/v1/users',UserController.getAllUsers);
+userRoutes.get('/v1/users',UserController.getAllUsers); // it is used
 
 
 export default userRoutes;

@@ -14,7 +14,9 @@ export async function processMqttData(topic: string, payload: any) {
         if (!devEui) {
             throw new Error("devEui is missing in payload");
         }
-         console.log("📊 Received MQTT data for device:", devEui, "with odometer:", currentOdometer); 
+        // console.log("📊 Received MQTT data for device:", devEui, "with odometer:", currentOdometer); 
+
+
         if (isNaN(currentOdometer)) {
             throw new Error("Invalid odometer value");
         }

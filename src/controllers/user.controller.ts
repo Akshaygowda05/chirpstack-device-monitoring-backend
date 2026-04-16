@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { userService } from "../services/user.service";
 import AppError from "../utils/AppError";
 import { StatusCodes } from "http-status-codes";
+import e from "cors";
 
 export class UserController {
     static async createUser(req: Request, res: Response, next: NextFunction) {
@@ -67,17 +68,21 @@ export class UserController {
             await userService.updateuserPassword(userId, newPassword);
             res.status(200).json({ message: 'Password updated successfully' });
         } catch (error) {
-      next
+      next(error);// this will pass the error to the global error handler
         }
 
     }
 
-    static async getAllUsers(req: Request, res: Response,next: NextFunction) {
+    static async getUsers(req: Request, res: Response, next: NextFunction) {
         try {
-            const users = await userService.getAllUsers();
-            res.status(200).json(users);
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 10;
+
+            const result = await userService.getAllUsers(page, limit);
+
+            res.json(result);
         } catch (error) {
-         next(error);// this will pass the error to the global error handler
+            next(error);// this will pass the error to the global error handler
         }
     }
 }
