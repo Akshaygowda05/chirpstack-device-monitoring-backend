@@ -76,7 +76,7 @@ class RobotRepository {
                     manualCount,
                     batteryVoltage,
                     batteryDischargeCycle: batteryDischarge,
-                    block,
+                    
                 },
             });
 

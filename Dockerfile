@@ -1,5 +1,5 @@
-FROM node:20-alpine
-WORKDIR /usr/src/app
+FROM node:22
+WORKDIR /src/server
 
 COPY package*.json ./
 

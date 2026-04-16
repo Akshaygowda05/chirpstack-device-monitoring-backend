@@ -8,6 +8,11 @@ import { globalErrorHandler } from "./utils/globalErrorHandler";
 import router from "./routes";
 import cors from "cors";
 import { activeInactiveJobs } from "./backgroungJobs/ActiveInactive";
+import loggers from "./config/logger";
+import  jwt  from "jsonwebtoken";
+import envconfig from "./config/envConfig";
+import { getApplicationEvents } from "./config/redis";
+import authenticate from "./middlewares/auth.middlware";
 
 const port = 3000;
 
@@ -20,7 +25,7 @@ export const server = http.createServer(app);
     }
 })
 
-const mqttInstance= new MQTTconfig()
+
 
 
 app.use(cors());
@@ -30,11 +35,27 @@ app.use(express.urlencoded({ extended: true }));
 console.log("Starting server...");
 
 
+io.on("connection",(socket) =>{
+  const token = socket.handshake.auth?.token;
 
+  try {
+    const decode = jwt.verify(token, envconfig.getTokenSecret()) as { applicationId: string };
+    const applicationId = decode.applicationId;
+
+    socket.join(applicationId);
+    loggers.info(`✅ Client connected: ${socket.id} joined application room: ${applicationId}`);
+
+  } catch (error) {
+    socket.on("disconnect",() =>{
+    loggers.info("❌ Client disconnected",socket.id);
+  });
+  }  
+})
 
 
 new MQTTconfig()
-//activeInactiveJobs()
+const mqttInstance= new MQTTconfig()
+activeInactiveJobs()
 
 app.use('/',router);
 app.get('/api/health', (req, res) => {
@@ -43,6 +64,17 @@ app.get('/api/health', (req, res) => {
     status: 'OK'
   });
 });
+
+
+app.get(`/api/events/`,authenticate,async(req:Request,res:Response)=>{
+
+  const applicationId = (req as any).applicationId;
+  if(!applicationId){
+    return res.status(400).json({error:"Application ID is required"})
+  }
+  const events = await getApplicationEvents(applicationId);
+  res.json(events);
+})
 
 app.use(globalErrorHandler); 
 

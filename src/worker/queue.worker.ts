@@ -19,7 +19,6 @@ const  worker = new Worker("dataQueue",async (job) =>{
         try{ 
 
           await  Promise.all([
-                // loggers.info(`Processing MQTT data for topic ${topic}`),
                 processMqttData(topic, parsedPayload),
                 storeDataInRedis(parsedPayload)
 

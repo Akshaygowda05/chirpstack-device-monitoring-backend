@@ -6,15 +6,15 @@ import loggers from "../config/logger";
 export async function processMqttData(topic: string, payload: any) {
     try {
         const devEui = payload?.deviceInfo?.devEui;
-       // console.log(" ☠️Processing MQTT data for device:", devEui);
+    //   console.log(" ☠️Processing MQTT data for device:", payload?.object); 
         const currentOdometer = Number(payload?.object?.CH10);
-      //  console.log("👾Current odometer value:", currentOdometer);
+
         let block = payload?.tags?.loc  || "unknown";
 
         if (!devEui) {
             throw new Error("devEui is missing in payload");
         }
-
+         console.log("📊 Received MQTT data for device:", devEui, "with odometer:", currentOdometer); 
         if (isNaN(currentOdometer)) {
             throw new Error("Invalid odometer value");
         }
