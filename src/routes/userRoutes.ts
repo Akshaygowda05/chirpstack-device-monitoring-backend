@@ -9,7 +9,7 @@ userRoutes.delete('/v1/users/:id',UserController.deleteUser);
 userRoutes.put('/v1/users/:id',UserController.updateUser);
 userRoutes.post('/v1/user/login',UserController.userlogin); // it is also used 
 userRoutes.put('/v1/users/:id/password',UserController.updateUserPassword);
-userRoutes.get('/v1/users',UserController.getAllUsers); // it is used
+userRoutes.get('/v1/users',UserController.getUsers); // it is used
 
 
 export default userRoutes;

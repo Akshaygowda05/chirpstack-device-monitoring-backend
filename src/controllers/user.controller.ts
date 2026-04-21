@@ -20,7 +20,7 @@ export class UserController {
             const user = await userService.CreateUser(userData);
             res.status(201).json(user);
         } catch (error) {
-            next(error);// 
+            next(error);
         }
     }
 

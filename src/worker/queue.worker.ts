@@ -4,6 +4,7 @@ import { validateZeroOrNot } from "../utils/robotdata.parse";
 import { processMqttData } from "../controllers/mqttData.StateMachine";
 import { storeDataInRedis } from "../services/robot.redis";
 import { getRedisClient } from "../config/redis";
+import { ErrorRedisServices } from "../repositories/error.repository";
 
 let redis = getRedisClient();
 const  worker = new Worker("dataQueue",async (job) =>{  
@@ -19,8 +20,10 @@ const  worker = new Worker("dataQueue",async (job) =>{
         try{ 
 
           await  Promise.all([
-                processMqttData(topic, parsedPayload),
-                storeDataInRedis(parsedPayload)
+                processMqttData(topic, parsedPayload),// this for the data stroage
+                storeDataInRedis(parsedPayload), // this  to store the data in the redis to fetch the data of that particular devcies data
+                ErrorRedisServices(parsedPayload)
+
 
             ])
               

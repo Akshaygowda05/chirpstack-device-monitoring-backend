@@ -19,6 +19,7 @@ export async function storeDataInRedis(data:any){
         let objectData = data?.object // this is already a object 
         let rssi = data.rxInfo[0]?.rssi; // i need to add this in redis and also snr value
         let snr = data.rxInfo[0]?.snr;
+        let robotName = data?.deviceInfo?.deviceName || "unknown";
 
 
         for (const key in objectData) {
@@ -35,6 +36,7 @@ export async function storeDataInRedis(data:any){
         }
 
         redisData["updatedAt"] = new Date().toISOString();
+            redisData["robotName"] = robotName;
 
           await redisClient.hset(`device:${deviceEui}`, redisData); // this will merge the existing data
 

@@ -48,6 +48,9 @@ export class UserService{
       where: { email },
     });
 
+
+    console.log('Existing user check:', existingUser ? 'User exists' : 'No user found');
+
     
     let appId: string | null = null;
 
@@ -56,25 +59,28 @@ export class UserService{
         throw new AppError('Application ID is required', StatusCodes.BAD_REQUEST);
       }
 
-      // Try DB first
+     
       const dbApp = await prisma.chirpstackApplication.findUnique({
         where: { chirpstackId: applicationIdInput },
         select: { chirpstackId: true },
       });
 
+
+      console.log('Database application check:', dbApp ? 'Application found in DB' : 'No application in DB');
       if (dbApp) {
         appId = dbApp.chirpstackId;
       } else {
-        // Fetch from external API
+        
         const result = await apiClient.get(
           `/api/applications/${applicationIdInput}`
         );
 
+        console.log('Chirpstack API response:', result);
+        
         if (!result?.data?.application) {
           throw new AppError('Invalid application ID', StatusCodes.BAD_REQUEST);
         }
 
-        // Sync DB
         await syncChirpstackData();
 
         appId = String(result.data.application.id).trim();
