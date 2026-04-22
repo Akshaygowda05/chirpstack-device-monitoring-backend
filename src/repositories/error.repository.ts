@@ -17,56 +17,121 @@ const errorDetail: Record<number, number> = {
 
 export async function ErrorRedisServices(data: any) {
   try {
-    const errorRaw = data.object?.CH7;
-    const applicationId = data.deviceInfo?.applicationId;
-    const deviceName = data.deviceInfo?.deviceName;
-    const deviceId = data.deviceInfo?.deviceId;
+    const errorRaw = data?.object?.CH7;
+    const applicationId = data?.deviceInfo?.applicationId;
+    const deviceName = data?.deviceInfo?.deviceName;
+    const deviceId = data?.deviceInfo?.devEui;
 
-    if (!applicationId || !deviceId) return;
+    if (!applicationId || !deviceId) {
+      console.warn("Missing applicationId or deviceId");
+      return;
+    }
+
+    if (errorRaw === undefined || errorRaw === null) {
+      console.warn("Missing CH7");
+      return;
+    }
 
     const appKey = `applicationError:${applicationId}`;
     const warningSet = `applicationWarning:${applicationId}`;
     const criticalSet = `applicationCritical:${applicationId}`;
     const pubChannel = `errorChannel:${applicationId}`;
 
-    // get previous state
+    const levelToSetMap: Record<number, string> = {
+      1: warningSet,
+      2: criticalSet,
+    };
+
+    //-----------------------------------------
+    // Get previous state
+    //-----------------------------------------
     const oldData = await redis.hget(appKey, deviceId);
+
+    let oldErrorCode = 0;
     let oldErrorLevel = 0;
 
-    // first old data idre remove madi amle error level na parse madbeku and then new data idre add madi publish madbeku so that frontend can update the ui accordingly
     if (oldData) {
       try {
-        oldErrorLevel = JSON.parse(oldData).errorLevel ?? 0;
-      } catch {}
+        const parsed = JSON.parse(oldData);
+        oldErrorCode = parsed.errorCode ?? 0;
+        oldErrorLevel = parsed.errorLevel ?? 0;
+      } catch (e) {
+        console.warn("Bad Redis payload", e);
+      }
     }
- 
-    const multi = redis.multi();
 
-
+    //-----------------------------------------
+    // Handle clear first
+    //-----------------------------------------
     if (errorRaw == 0 || errorRaw == "0") {
-      multi.srem(warningSet, deviceId);
-      multi.srem(criticalSet, deviceId);
 
-    
+      const multi = redis.multi();
+
+      // remove from whichever set it was in
+      const oldSet = levelToSetMap[oldErrorLevel];
+      if (oldSet) {
+        multi.srem(oldSet, deviceId);
+      }
+
       multi.hdel(appKey, deviceId);
 
-    
       multi.publish(
         pubChannel,
         JSON.stringify({
+          type: "cleared",
           deviceId,
           deviceName,
-          cleared: true,
+          errorCode: 0,
+          errorLevel: 0,
           timestamp: Date.now(),
         })
       );
 
       await multi.exec();
+
+      console.log(`Cleared error for ${deviceId}`);
       return;
     }
 
+    //-----------------------------------------
+    // Parse new error
+    //-----------------------------------------
     const errorCode = parseInt(errorRaw);
-    const errorLevel = errorDetail[errorCode] ?? 1; 
+
+    if (Number.isNaN(errorCode)) {
+      console.warn("Invalid error code:", errorRaw);
+      return;
+    }
+
+    const errorLevel = errorDetail[errorCode] ?? 1;
+
+    //-----------------------------------------
+    // Skip duplicate state
+    //-----------------------------------------
+    if (
+      oldErrorCode === errorCode &&
+      oldErrorLevel === errorLevel
+    ) {
+      console.log("No change, skipping update");
+      return;
+    }
+
+    //-----------------------------------------
+    // State transition update
+    //-----------------------------------------
+    const multi = redis.multi();
+
+    // remove from previous severity set
+    const oldSet = levelToSetMap[oldErrorLevel];
+    if (oldSet) {
+      multi.srem(oldSet, deviceId);
+    }
+
+    // add to new severity set
+    const newSet = levelToSetMap[errorLevel];
+    if (newSet) {
+      multi.sadd(newSet, deviceId);
+    }
 
     const newData = JSON.stringify({
       deviceName,
@@ -75,30 +140,9 @@ export async function ErrorRedisServices(data: any) {
       timestamp: Date.now(),
     });
 
-
-    const levelToSetMap: Record<number, string> = {
-      1: warningSet,
-      2: criticalSet,
-    };
-
-    const allSets = Object.values(levelToSetMap);
-    const targetSet = levelToSetMap[errorLevel] 
-
-    if(targetSet){
-    multi.sadd(targetSet, deviceId);
-    }
-    
-    allSets.forEach((set) => {
-      multi.srem(set, deviceId);
-    });
-
-  
-
-
-
     multi.hset(appKey, deviceId, newData);
 
-   
+    // optional expiry
     multi.expire(appKey, 3600);
     multi.expire(warningSet, 3600);
     multi.expire(criticalSet, 3600);
@@ -106,6 +150,7 @@ export async function ErrorRedisServices(data: any) {
     multi.publish(
       pubChannel,
       JSON.stringify({
+        type: "updated",
         deviceId,
         deviceName,
         errorCode,
@@ -115,6 +160,11 @@ export async function ErrorRedisServices(data: any) {
     );
 
     await multi.exec();
+
+    console.log(
+      `Updated ${deviceId} -> code ${errorCode}, level ${errorLevel}`
+    );
+
   } catch (err) {
     console.error("❌ ErrorRedisServices failed:", err);
   }

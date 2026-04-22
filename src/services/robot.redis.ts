@@ -6,7 +6,7 @@ export async function storeDataInRedis(data:any){
 
    // console.log("Storing data in Redis: i am here what to ");
     try {
-
+console.log("Storing data in Redis for device:");
         const redisData : Record<string,string> = {};
         const deviceEui = data?.deviceInfo?.devEui;
         if(!deviceEui){
