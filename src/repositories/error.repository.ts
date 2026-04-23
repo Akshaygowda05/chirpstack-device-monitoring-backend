@@ -42,9 +42,7 @@ export async function ErrorRedisServices(data: any) {
       2: criticalSet,
     };
 
-    //-----------------------------------------
-    // Get previous state
-    //-----------------------------------------
+   
     const oldData = await redis.hget(appKey, deviceId);
 
     let oldErrorCode = 0;
@@ -60,9 +58,7 @@ export async function ErrorRedisServices(data: any) {
       }
     }
 
-    //-----------------------------------------
-    // Handle clear first
-    //-----------------------------------------
+  
     if (errorRaw == 0 || errorRaw == "0") {
 
       const multi = redis.multi();
@@ -93,9 +89,7 @@ export async function ErrorRedisServices(data: any) {
       return;
     }
 
-    //-----------------------------------------
-    // Parse new error
-    //-----------------------------------------
+   
     const errorCode = parseInt(errorRaw);
 
     if (Number.isNaN(errorCode)) {
@@ -105,9 +99,7 @@ export async function ErrorRedisServices(data: any) {
 
     const errorLevel = errorDetail[errorCode] ?? 1;
 
-    //-----------------------------------------
-    // Skip duplicate state
-    //-----------------------------------------
+ 
     if (
       oldErrorCode === errorCode &&
       oldErrorLevel === errorLevel
@@ -116,9 +108,6 @@ export async function ErrorRedisServices(data: any) {
       return;
     }
 
-    //-----------------------------------------
-    // State transition update
-    //-----------------------------------------
     const multi = redis.multi();
 
     // remove from previous severity set
@@ -127,7 +116,6 @@ export async function ErrorRedisServices(data: any) {
       multi.srem(oldSet, deviceId);
     }
 
-    // add to new severity set
     const newSet = levelToSetMap[errorLevel];
     if (newSet) {
       multi.sadd(newSet, deviceId);
@@ -142,7 +130,6 @@ export async function ErrorRedisServices(data: any) {
 
     multi.hset(appKey, deviceId, newData);
 
-    // optional expiry
     multi.expire(appKey, 3600);
     multi.expire(warningSet, 3600);
     multi.expire(criticalSet, 3600);

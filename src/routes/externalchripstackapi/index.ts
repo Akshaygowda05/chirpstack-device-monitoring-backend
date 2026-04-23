@@ -273,17 +273,24 @@ chripstackRouter.get('/allGateways',authenticate,async(req: Request,res: Respons
             throw new AppError('Application ID missing in user token,please login again',StatusCodes.BAD_REQUEST);
         }
 
-        const teneantId = prisma.chirpstackApplication.findFirst({
+        console.log("Application ID from request:", applicationId); // Debug log to check the application ID
+
+        const tenean = await  prisma.chirpstackApplication.findFirst({
             where:{
                 chirpstackId: applicationId
-            },select:{
-                tenantId: true
+            },include:{
+              tenant:true
             }
         })
+
+  let teneantId = tenean?.tenant.chirpstackId;
+  
+  //console.log("Tenant ID for the application:", teneantId); // Debug log to check the tenant ID
+      
         const gatewayResponse = await apiClient.get(`api/gateways`,{
             params:{
                 limit:req.query.limit || 100,
-                tenantId: (teneantId as any)?.tenantId
+                tenantId: teneantId
             }
         });
         const gatewayData = gatewayResponse.data;

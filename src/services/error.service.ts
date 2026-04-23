@@ -14,6 +14,7 @@ export const getAllErrors = async (applicationId: string) => {
             return {
                 deviceId,
                 deviceName: parsed.deviceName,
+                errorCode:parsed.errorCode,
                 errorLevel: parsed.errorLevel,
                 timestamp: parsed.timestamp
             };
