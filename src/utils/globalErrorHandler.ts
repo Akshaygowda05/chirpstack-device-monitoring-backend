@@ -13,7 +13,7 @@ export function globalErrorHandler(
         errorData = {
             message: err.message,
             status: (err as any).statusCode || 500,
-            isOperational: (err as any).isOperational || false
+            isOperational: (err as any).isOperational 
         };
     } else {
         errorData = {

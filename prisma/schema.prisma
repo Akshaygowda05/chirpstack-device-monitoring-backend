@@ -97,8 +97,8 @@ model SiteConfiguration {
   triggeringAction      blocktriggering @default(UNICAST)
   sendTwiceAday         Boolean @default(false)
 
-  applicationId         Int @unique
-  application           ChirpstackApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId         String @unique
+  application           ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
 
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

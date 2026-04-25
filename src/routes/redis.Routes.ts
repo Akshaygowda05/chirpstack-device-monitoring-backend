@@ -13,18 +13,21 @@ fetchRedisDataRouter.get('/v1/device/:deviceEui/data',async(req:Request,res:Resp
     try {
         const { deviceEui } = req.params;
         if(!deviceEui){
+            console.error('Device EUI is missing in the request parameters');
             throw new AppError('Device EUI is required',StatusCodes.BAD_REQUEST);
         }
 
         const data = await redis.hgetall(`device:${deviceEui}`);
 
-        if(!data){
-            throw new AppError(`No data found for device with EUI ${deviceEui}`,StatusCodes.NOT_FOUND);
-        }
+     if (!data || Object.keys(data).length === 0) {
+    console.warn(`No data found for device with EUI ${deviceEui}`);
+    throw new AppError(`No data found for device with EUI ${deviceEui}`, StatusCodes.NOT_FOUND);
+}
 
         res.json(data);
 
     } catch (error) {
+        
         next(error);
     }
 })
