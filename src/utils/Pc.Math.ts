@@ -1,32 +1,84 @@
 import { prisma } from "../config/primsaConfig";
+import { getRedisClient } from "../config/redis";
 
-export async function calculatePannelsCleand(applicationId:string,currentOdomter:number):Promise<number> {
-    try {
+const redis = getRedisClient();
 
-        const getsiteconfig = await prisma.chirpstackApplication.findFirst({
-            where:{
-                chirpstackId: applicationId
-            },include:{
-                siteConfiguration:true
-            }
-        })
+const CACHE_TTL = 1800;  // 30 minutes in seconds
 
-        if(!getsiteconfig || !getsiteconfig.siteConfiguration){
-           // throw new Error('Site configuration not found for applicationId: ' + applicationId);
-           return 0;
-        }
+type SiteConfigType = {
+  panelsGap: number;
+  panelWidth: number;
+  multiplicationFactor: number;
+  isConfigured: boolean;
+};
 
-        const distance = currentOdomter ;
-        const effectiveCleaningWidth = getsiteconfig.siteConfiguration.panelsGap + getsiteconfig.siteConfiguration.panelWidth;
-        const panelsCleaned = Math.floor(distance / effectiveCleaningWidth);
-        const toalPannelsCleaned = panelsCleaned * getsiteconfig.siteConfiguration.multiplicationFactor ||1;
+export async function calculatePanelsCleaned(
+  applicationId: string,
+  currentOdometer: number
+): Promise<number | null> {
+  try {
+    const cacheKey = `siteConfig:${applicationId}`;
 
-        return toalPannelsCleaned || 0;
-        
-    } catch (error:any) {
+  
+    let siteconfig: SiteConfigType;
 
-        throw new Error('Error calculating panels cleaned: ' + error.message);
-        
-    }
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      siteconfig = JSON.parse(cached) as SiteConfigType;
+    } else {
     
+      const app = await prisma.chirpstackApplication.findUnique({
+        where: { chirpstackId: applicationId },
+        include: { siteConfiguration: true }
+      });
+
+      if (!app) return null;
+
+      
+      if (!app.siteConfiguration) {
+        await prisma.siteConfiguration.create({
+          data: { applicationId }
+        });
+        return null;
+      }
+
+      siteconfig = {
+        panelsGap: app.siteConfiguration.panelsGap,
+        panelWidth: app.siteConfiguration.panelWidth,
+        multiplicationFactor: app.siteConfiguration.multiplicationFactor,
+        isConfigured: app.siteConfiguration.isConfigured
+      };
+
+
+     
+      await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(siteconfig));
+    }
+
+   
+    if (!siteconfig.isConfigured) {
+      return null; 
+    }
+
+   
+    const effectiveCleaningWidth =
+      siteconfig.panelsGap + siteconfig.panelWidth;
+
+    if (effectiveCleaningWidth <= 0) {
+      return null; 
+    }
+
+    const panelsCleaned = Math.floor(
+      currentOdometer / effectiveCleaningWidth
+    );
+
+    const totalPanelsCleaned =
+      panelsCleaned * siteconfig.multiplicationFactor;
+
+    return totalPanelsCleaned;
+
+  } catch (error: any) {
+    throw new Error(
+      "Error calculating panels cleaned: " + error.message
+    );
+  }
 }

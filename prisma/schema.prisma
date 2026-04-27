@@ -99,6 +99,7 @@ model SiteConfiguration {
 
   applicationId         String @unique
   application           ChirpstackApplication @relation(fields: [applicationId], references: [chirpstackId], onDelete: Cascade)
+  isConfigured Boolean @default(false)
 
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

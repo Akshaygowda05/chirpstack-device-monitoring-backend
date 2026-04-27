@@ -23,6 +23,16 @@ class siteConfigController {
             next(error);
         }
     }
+
+    async getstatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const applicationId = (req as any).applicationId;
+            const status = await siteConfigService.getStatus(applicationId);
+            res.json(status);
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 
