@@ -8,6 +8,7 @@ export class UserController {
     static async createUser(req: Request, res: Response, next: NextFunction) {
         try {
             const userData = req.body;
+            console.log('Received user data for creation:', userData); // Debug log
             if (!userData) {
 
                 throw new AppError('Request body is required', StatusCodes.BAD_REQUEST);

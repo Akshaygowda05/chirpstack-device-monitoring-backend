@@ -80,8 +80,6 @@ class RobotRepository {
                     ...device,
                     panelsCleaned,
                     rawOdometerValue: odometer,
-                    autoCount,
-                    manualCount,
                     batteryVoltage,
                     batteryDischargeCycle: batteryDischarge,
                 },

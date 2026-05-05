@@ -26,19 +26,31 @@ model RobotData {
   rawOdometerValue       BigInt
   batteryDischargeCycle  Float
   batteryVoltage         Float
-
-  manualCount            Int      @default(0)
-  autoCount              Int      @default(0)
-
   applicationId          String
   tenantId               String
-
-  createdAt              DateTime @default(now())
   
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
   @@index([deviceId])
   @@index([createdAt, deviceId])
   @@index([applicationId])
   @@index([tenantId])
+}
+
+
+model Runningata{
+  id Int @id @default(autoincrement())
+  applicationId String
+  tenantId String
+  deviceId String
+  autoCount                   Int      @default(0) // after the calculation we will update this field
+  manualCount                 Int      @default(0) // after the calculation we will update this field
+  TotalmanualCount            Int      @default(0)  //this is from robot total manual count
+  TotalautoCount              Int      @default(0)  // this is from robot total auto count
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
 }
 
 

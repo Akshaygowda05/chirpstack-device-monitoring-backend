@@ -14,7 +14,8 @@ class siteConfiguration {
                 panelWidth: true,
                 multiplicationFactor:true,
                 triggeringAction: true,
-                sendTwiceAday: true
+                sendTwiceAday: true,
+                isConfigured: true,
 
             }
         })
@@ -28,13 +29,13 @@ class siteConfiguration {
     const data: any = {};
 
     if (configData.panelsGap !== undefined)
-        data.panelsGap = configData.panelsGap;
+        data.panelsGap = parseFloat(configData.panelsGap);
 
     if (configData.panelWidth !== undefined)
-        data.panelWidth = configData.panelWidth;
+        data.panelWidth = parseFloat(configData.panelWidth);
 
     if (configData.multiplicationFactor !== undefined)
-        data.multiplicationFactor = configData.multiplicationFactor;
+        data.multiplicationFactor = parseInt(configData.multiplicationFactor);
 
     if (configData.triggeringAction !== undefined)
         data.triggeringAction = configData.triggeringAction;

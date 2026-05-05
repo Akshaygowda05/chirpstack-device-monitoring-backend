@@ -62,8 +62,8 @@ io.on("connection", (socket) => {
   }
 });
 
-const mqttInstance= new MQTTconfig()
-activeInactiveJobs()
+const mqttInstance= new MQTTconfig();
+//activeInactiveJobs();
 
 app.use('/',router);
 app.get('/api/health', (req, res) => {

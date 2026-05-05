@@ -85,7 +85,7 @@ export async function ErrorRedisServices(data: any) {
 
       await multi.exec();
 
-      console.log(`Cleared error for ${deviceId}`);
+      //console.log(`Cleared error for ${deviceId}`);
       return;
     }
 
@@ -93,7 +93,7 @@ export async function ErrorRedisServices(data: any) {
     const errorCode = parseInt(errorRaw);
 
     if (Number.isNaN(errorCode)) {
-      console.warn("Invalid error code:", errorRaw);
+    //  console.warn("Invalid error code:", errorRaw);
       return;
     }
 
@@ -104,7 +104,7 @@ export async function ErrorRedisServices(data: any) {
       oldErrorCode === errorCode &&
       oldErrorLevel === errorLevel
     ) {
-      console.log("No change, skipping update");
+     // console.log("No change, skipping update");
       return;
     }
 

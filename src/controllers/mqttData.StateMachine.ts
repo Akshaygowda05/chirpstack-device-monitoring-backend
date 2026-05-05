@@ -5,7 +5,6 @@ import loggers from "../config/logger";
 
 export async function processMqttData(topic: string, payload: any) {
     try {
-        console.log(" ☠️Processing MQTT data for device:");
         const devEui = payload?.deviceInfo?.devEui;
     //   console.log(" ☠️Processing MQTT data for device:", payload?.object); 
         const currentOdometer = Number(payload?.object?.CH10);

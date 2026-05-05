@@ -15,7 +15,7 @@ import { hash } from 'crypto';
 interface userData{
     name: string;
     email: string;
-    site: string;
+    siteName: string;
     password: string;
     role: Role;
     applicationId: number | undefined
@@ -103,7 +103,7 @@ export class UserService{
           role: data.role,
           isActive: true,
           applicationId: appId,
-          siteName: data.site?.trim(),
+          siteName: data.siteName?.trim(),
         },
       });
 
@@ -120,7 +120,7 @@ export class UserService{
       data: {
         name: data.name?.trim(),
         email,
-        siteName: data.site?.trim(),
+        siteName: data.siteName?.trim(),
         password: hashedPassword,
         role: data.role,
         applicationId: appId,
