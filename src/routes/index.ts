@@ -10,6 +10,7 @@ import robotsBatteriesRouter from "./robotsBatteries.Routes";
 import homeRouter from "./home.Routes";
 import applicationError from "./error.Routes";
 import siteConfigRoutes from "./siteconfig.Routes";
+import reportRouter from "./report.routes";
 
 router.use('/api',userRoutes);
 router.use('/api',chripstackRouter);
@@ -18,6 +19,7 @@ router.use(`/api`,robotsBatteriesRouter);
 router.use('/api',homeRouter);
 router.use('/api',applicationError);
 router.use('/api',siteConfigRoutes);
+router.use('/api',reportRouter);
 
 
 export default router;

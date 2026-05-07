@@ -80,11 +80,14 @@ async getDeviceActiveCount(applicationId: string) {
 // this is only to get the today active inactive count for the devices
 async getTodayDeviceActiveCount(applicationId: string) {
   return prisma.$queryRaw<ActiveInactiveCount[]>`
-    SELECT "createdAt", "activeCount", "inactiveCount"
+    SELECT
+      DATE("createdAt") as date,
+      "activeCount",
+      "inactiveCount"
     FROM "activeDeviceCount"
     WHERE "applicationId" = ${applicationId}
-      AND "createdAt" >= CURRENT_DATE
-      AND "createdAt" < CURRENT_DATE + INTERVAL '1 day'
+      AND DATE("createdAt") = CURRENT_DATE
+    ORDER BY "createdAt" DESC
   `
 }
 }

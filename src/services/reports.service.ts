@@ -78,8 +78,8 @@ const result = await prisma.$queryRaw<{
     totalRobots: number;
 }[]>`
 SELECT
-SUM("panelsCleaned") AS "totalPanelsCleaned",
-COUNT(DISTINCT "deviceId") AS "totalRobots"
+SUM("panelsCleaned")::integer AS "totalPanelsCleaned",
+COUNT(DISTINCT "deviceId")::integer AS "totalRobots"
 FROM "RobotData"
 WHERE "applicationId" = ${applicationId}
 AND "createdAt" >= ${startDate}

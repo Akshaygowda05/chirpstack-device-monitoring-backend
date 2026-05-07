@@ -79,6 +79,7 @@ export class homeService{
 
   async getTodayActiveCount(applicationId:string){
     const result = await this.repo.getTodayDeviceActiveCount(applicationId)  
+    console.log("🚀 ~ file: home.service.ts:97 ~ homeService ~ getTodayActiveCount ~ result:", result)
     return result[0]
   }
 

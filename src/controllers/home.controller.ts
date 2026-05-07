@@ -34,9 +34,7 @@ export class homeController{
         }
 
         const last5day = await service.getActiveCount(applicationId);
-       //// console.log("🚀 ~ file: home.controller.ts:84 ~ homeController ~ getDeviceActiveInactiveCount ~ last5day:", last5day)
         const today = await service.getTodayActiveCount(applicationId)
-       // console.log("🚀 ~ file: home.controller.ts:87 ~ homeController ~ getDeviceActiveInactiveCount ~ today:", today)
 
         res.status(StatusCodes.OK).json({
             message:'success',
