@@ -1,14 +1,23 @@
 import bcrypt from "bcryptjs";
-import { PrismaClient , Role} from "../src/generated/prisma/client"; 
-const prisma = new PrismaClient();
 import dotenv from "dotenv";
 
+import { PrismaClient, Role } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
 dotenv.config();
+
+const connectionString = process.env.DATABASE_URL!;
+
+const adapter = new PrismaPg({ connectionString });
+
+const prisma = new PrismaClient({
+  adapter,
+});
 
 async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL!;
   const password = process.env.ADMIN_PASSWORD!;
-  const name = process.env.ADMIN_NAME!
+  const name = process.env.ADMIN_NAME!;
 
   const hashedPassword = await bcrypt.hash(password, 12);
 

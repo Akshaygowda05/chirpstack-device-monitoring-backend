@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
-import { Role } from '../generated/prisma/enums';
+import { Role }  from "@prisma/client";
 import envconfig from '../config/envConfig';
 import AppError from '../utils/AppError';
 import { StatusCodes } from 'http-status-codes';

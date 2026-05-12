@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 console.log("Starting server...");
 
 
-io.on("connection", (socket) => {
+io.on("connection", (socket:any) => {
   try {
     const token = socket.handshake.auth?.token;
 

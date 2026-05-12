@@ -1,6 +1,5 @@
 import bycrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Role } from '../generated/prisma/enums';
 import { prisma } from '../config/primsaConfig';
 import envconfig from '../config/envConfig';
 import AppError from '../utils/AppError';
@@ -8,6 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 import apiClient from '../config/apiclient';
 import { syncChirpstackData } from '../seed/applicationAndTenantId.repo';
 import { hash } from 'crypto';
+import { Role } from "@prisma/client";
 
 
 
